@@ -1,11 +1,11 @@
 # 本地验证记录
 
-日期：2026-10-18，当前验证版本 1.2.0。测试环境：蓝叠 Pie64 / Android 9；构建环境：JDK 21、Gradle 8.14.3、AGP 8.13.0、Android SDK 36。
+日期：2026-10-19，当前验证版本 1.2.1。测试环境：蓝叠 Pie64 / Android 9；构建环境：JDK 21、Gradle 8.14.3、AGP 8.13.0、Android SDK 36。
 
 ## 构建与标识
 
 - `:app:exportDebugApk`、`:app:assembleDebugAndroidTest`、`:app:testDebugUnitTest`、`:app:lintDebug` 通过。
-- 最终安装包：`app/build/outputs/apk/kgent/kgent.apk`，显示名 `kgent`，应用 ID `com.haven.kgent`，versionCode 3，versionName `1.2.0-dev`。
+- 最终安装包：`app/build/outputs/apk/kgent/kgent.apk`，显示名 `kgent`，应用 ID `com.haven.kgent`，versionCode 4，versionName `1.2.1-dev`。
 - 28 项 JVM 测试通过，0 失败；Lint 0 错误、60 项告警。新增覆盖秒级时间/旧设置迁移、自然配速首公里和后段分段行为、积分反演、暂停调速、轨迹速度一致性和地图坐标转换。告警仍保留，不能将其描述为零告警构建。
 - 最终 APK 已安装到蓝叠。活动源码与配置不再使用旧包标识。
 
@@ -16,8 +16,10 @@
 - UI 检查覆盖 1920×1080 横屏、600×1100 手机布局、深色主题、1.3 倍字体，以及运行中切到历史页、暂停和结束。
 - 运行中的历史页继续显示距离、时间、进度和暂停/结束按钮；禁用的历史主按钮显示“结束后补跑”。
 - 轨迹使用可中断的 220 ms 过渡；系统动画关闭时立即更新。状态过渡与 Material 进度也遵循系统设置。
-- 1.2.0 独立 UI 审查检查了 14 张截图，最终结论为 `ship`，无待修复项。范围覆盖控件对比度、秒选择、自然配速入口、状态连续性和地图说明；不代表新坐标记录在云端的显示已验证。
+- 1.2.0 独立 UI 审查检查了 14 张截图，最终结论为 `ship`，无待修复项。1.2.1 追加了 Keep 来源字段和地图说明，未改变已审查的视觉世界；不代表新坐标记录在云端的显示已验证。
 - 明暗主题下，按钮文字对比度至少 6.14:1，控件边界至少 4.78:1，弹窗操作文字至少 6.90:1；禁用文字至少 4.90:1。浅蓝主按钮填充继续保留。
+- Keep 地图复现：点击 Street 缩略图后，全屏页显示道路/水域/地名；返回详情页底图同步恢复，Keep 强制停止并重新打开记录后仍保持。点击 Street 文字区域本身不会作为成功证据。
+- Keep 来源字段：生成 JSON 中 `source=keep_app`、`source_page=keep_app`，摘要中 `sourceType=OFFLINE` 保持不变；Keep 本地解析器读取无错误。
 
 ## Keep 本地交接
 

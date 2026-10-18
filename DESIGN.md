@@ -245,7 +245,7 @@ Start/end fields first open `DatePickerDialog`, then a `MaterialAlertDialog` wit
 
 Both forms expose a native `MaterialSwitch` labeled “自然配速”, with (14 sp) text and a minimum height of (48 dp). Its checked state is restored independently for each mode and defaults to enabled; switching it off selects uniform pace. The live switch is locked while a run is active or work is busy, and the live form displays current pace and speed during the run. Changing the history switch invalidates the prepared review.
 
-The supporting copy explains a slightly faster opening for runs longer than 1 km, settling through the first kilometer into small, smooth changes. Historical duration, distance, and average pace remain consistent with the requested inputs. `PaceProfile` and the README own the algorithm explanation; its coefficients are not visual design tokens. Switch track/thumb styling remains native Material behavior.
+The supporting copy explains a slightly faster opening for runs longer than 1 km, settling through the first kilometer into small, smooth changes. `PaceProfile` combines interpolated low-frequency noise at 145 m and 330 m with a sine component; its amplitude coefficient is 0.020–0.030, the opening factor makes the first kilometer faster, and the integrated curve is normalized by its mean. Historical duration, distance, and average pace therefore remain consistent with the requested inputs. These behavioral coefficients are implementation evidence, not visual design tokens. Switch track/thumb styling remains native Material behavior.
 
 ### Navigation
 
@@ -255,7 +255,7 @@ The native `TabLayout` contains “实时跑步” and “历史补跑”. The n
 
 `RoutePreviewView` draws the selected KML route geometry on a tonal canvas; it does not show map tiles or invented roads. It centers the geometry with a maximum inset of (28 dp), limited to (16%) of the smaller canvas dimension. The full route uses the outline color, and traveled geometry uses the accent, with a (3 dp) stroke. At zero distance the full route is accent-colored. Its accessible description names the route, point count, and approximate length.
 
-The canvas remains a route overview. Help directs users to Keep record details → Fullscreen → Layers → Street for geographic tiles; Hide map shows a flat background. New history handoffs adapt standard GPS/WGS84 KML coordinates to Keep's GCJ-02 chain, while GPX retains GPS coordinates. Existing cloud records are not rewritten, and alignment of a newly converted cloud record has not been independently verified.
+The canvas remains a route overview. Help directs users to Keep record details → Fullscreen → Layers → tap the Street thumbnail → confirm; tapping the text alone may not trigger the layer. Hide map shows a flat background. New history handoffs adapt standard GPS/WGS84 KML coordinates to Keep's GCJ-02 chain, while GPX retains GPS coordinates. Existing cloud records are not rewritten, and alignment of a newly converted cloud record has not been independently verified.
 
 Visible live progress interpolates from the current displayed distance over (220 ms) with native `DecelerateInterpolator(2)`. A new update cancels the previous interpolation, and route replacement or detachment cancels it too. History previews set distance immediately. `LinearProgressIndicator` uses accent fill, tonal track, and native progress animation when system animators are enabled; its animation duration is not overridden by the app.
 
@@ -263,7 +263,7 @@ Visible live progress interpolates from the current displayed distance over (220
 
 `Ui.reveal` cancels an existing view animation, then reveals a changed form, status, or review over (180 ms), from alpha (0.6) and vertical offset (6 dp) to the resting state. It uses `DecelerateInterpolator(2)`. Both reveal and route interpolation consult `ValueAnimator.areAnimatorsEnabled()` and apply the final state immediately when animations are disabled. Footer errors become visible immediately without a custom reveal animation.
 
-History is one record at a time. The tonal review shows generated distance and trajectory details before an explicit Keep handoff dialog. Edits invalidate the prepared review. Keep the copy precise about preview, local preparation, and handoff; the UI does not establish server acceptance. Status, error, and connection messages use polite accessibility live regions where implemented.
+History is one record at a time. The tonal review shows generated distance and trajectory details before an explicit Keep handoff dialog. Edits invalidate the prepared review. Keep the copy precise about preview, local preparation, and handoff; the UI does not establish server acceptance. `KeepRecordBuilder` writes `source=keep_app` and `source_page=keep_app` into the detail payload while the SQLite summary retains `sourceType=OFFLINE`; local parser and unit-test evidence do not establish Keep cloud/list source-badge acceptance. Status, error, and connection messages use polite accessibility live regions where implemented.
 
 ### Identity Assets
 
@@ -282,6 +282,8 @@ The Android resource preparation task copies source resources into a generated d
 - Do draw actual route geometry and cancel superseded motion.
 - Do honor system animation settings for reveals and progress.
 - Do label generated history, local preparation, and Keep handoff according to the actual state.
+- Do keep the Keep map help path explicit about tapping the Street thumbnail and confirming the layer.
+- Do preserve the distinction between detail source fields (`keep_app`) and the offline summary classification (`OFFLINE`).
 - Do retain raster provenance and use the provenance manifest when checking asset changes.
 
 ### Don't:
@@ -291,6 +293,7 @@ The Android resource preparation task copies source resources into a generated d
 - Don't add decorative shadows to the flat workspace cards.
 - Don't hide an active run's controls behind a disabled history action.
 - Don't label a prepared or locally handed-off record as verified cloud success.
+- Don't infer cloud/list source-badge acceptance from local JSON or SQLite fields alone.
 - Don't treat provenance JSON sidecars as Android drawable or mipmap resources.
 
-Source authority: `FakeGPSActivity.java`, `ui/Ui.java`, `ui/RoutePreviewView.java`, `core/PaceProfile.java`, `core/RunDateTime.java`, the Keep coordinate adapter, both color/theme resource configurations, `PRODUCT.md`, the running-workspace surface contract, README, and the asset provenance manifest. The refinement finish review at `.impeccable/review/refinements/finish-review.md` records “ship”, no material fixes, and 14 required native captures. This documentation pass sampled the provided tablet live and dark phone seconds-picker captures without device operations. The supplied asset scan reports 11 rasters and 0 missing; assets remain unchanged. No material visual mismatch was found in the sampled source and captures. The review does not establish new cloud-record alignment or cloud acceptance; inherited Material defaults remain unexpanded.
+Source authority: `FakeGPSActivity.java`, `ui/Ui.java`, `ui/RoutePreviewView.java`, `core/PaceProfile.java`, `core/RunDateTime.java`, the Keep coordinate adapter, `keep/KeepRecordBuilder.java`, both color/theme resource configurations, `PRODUCT.md`, the running-workspace surface contract, README, and the asset provenance manifest. The refinement finish review at `.impeccable/review/refinements-v2-finish-review.md` records “ship”, no material fixes, and validates two new 600×1100 captures alongside the prior 14 refinement captures. This documentation pass read the source, product/surface contracts, and review artifact only; it performed no screenshot or device operations. The review does not establish Keep source-badge cloud/list acceptance or new cloud-record alignment; inherited Material defaults remain unexpanded.

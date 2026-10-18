@@ -397,6 +397,7 @@ public class FakeGPSActivity extends AppCompatActivity {
         connection = Ui.note(this, "检查本机 Keep 和当前登录账号");
         connection.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);
         Ui.add(form, connection, 20);
+        Ui.add(form, Ui.note(this, "Keep 地图底图：记录详情 → 全屏 → 图层 → 点击 Street 上方缩略图 → 确定"), 8);
         connect = Ui.button(this, "检查 Keep 连接", false);
         connect.setOnClickListener(v -> inspectKeep());
         export = Ui.button(this, "导出 GPX", false);
@@ -790,10 +791,10 @@ public class FakeGPSActivity extends AppCompatActivity {
                             ? "先选时间和配速，再检查生成结果"
                             : String.format(
                                     Locale.CHINA,
-                                        "%.2f km  /  %d 分 %02d 秒",
+                                    "%.2f km  /  %d 分 %02d 秒",
                                     prepared.distanceMeters / 1000,
-                                        prepared.durationSeconds / 60,
-                                        prepared.durationSeconds % 60));
+                                    prepared.durationSeconds / 60,
+                                    prepared.durationSeconds % 60));
             progress.setProgressCompat(0, false);
             routeView.setDistance(prepared == null ? 0 : prepared.distanceMeters, false);
             return;
@@ -1067,12 +1068,13 @@ public class FakeGPSActivity extends AppCompatActivity {
                 .setTitle("使用 kgent")
                 .setMessage(
                         "实时跑步：选择 KML 路线并配置速度。真机需在开发者选项中将 kgent 设为模拟定位应用。运行中可暂停、继续和调速。\n\n"
-                                + "历史补跑：单次选择过去的起止时间与配速，预览后交给 Keep。当前接入支持已提供 Root 的设备及 Keep"
-                                + " 8.7.30。也可单独导出 GPX。\n\n"
-                                + "起止时间可选到秒。自然配速在前 1 km 略快，后段仅有平滑小幅变化；关闭开关即可匀速。\n\n"
-                                + "Keep 地图底图：记录详情 → 全屏 → 图层 → Street。如果选择“隐藏地图”，只会显示纯色背景和轨迹。\n\n"
-                                + "路线请使用标准 GPS/WGS84 KML。交给 Keep 时会适配国内地图坐标，GPX 保留 GPS 坐标。\n\n"
-                                + "定位精度是位置误差半径，不是加速度。")
+                            + "历史补跑：单次选择过去的起止时间与配速，预览后交给 Keep。当前接入支持已提供 Root 的设备及 Keep"
+                            + " 8.7.30。也可单独导出 GPX。\n\n"
+                            + "起止时间可选到秒。自然配速在前 1 km 略快，后段仅有平滑小幅变化；关闭开关即可匀速。\n\n"
+                            + "Keep 地图底图：记录详情 → 全屏 → 图层，然后点击 Street 上方的地图缩略图（不要只点文字）并确认。若选择“隐藏地图”或"
+                            + " Gotham，只会显示纯色/深色背景和轨迹。\n\n"
+                            + "路线请使用标准 GPS/WGS84 KML。交给 Keep 时会适配国内地图坐标，GPX 保留 GPS 坐标。\n\n"
+                            + "定位精度是位置误差半径，不是加速度。")
                 .setPositiveButton("知道了", null)
                 .setNeutralButton(
                         "开发者选项",

@@ -43,6 +43,8 @@ public final class KeepRecordBuilder {
                 .put("recoveryFixingUiPending", false);
         data.put("trainingSource", "sports_container_outdoorRunning")
                 .put("trainingTrace", "sports_container_outdoorRunning");
+        // Keep's history list uses these fields for the native "Keep App" source badge.
+        data.put("source", "keep_app").put("source_page", "keep_app");
         data.put("businessInfo", new JSONObject()).put("businessPassThroughInfo", new JSONObject());
         data.put(
                 "sensorInfo",

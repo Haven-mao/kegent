@@ -17,10 +17,13 @@ public final class PaceProfile {
         for (int i = 0; i <= count; i++) {
             double distance = i * step;
             double front = total > 1000 ? 1 - smooth((distance - 600) / 400) : 0;
+            double phase = (seed & 0xffffL) / 65535.0 * Math.PI * 2;
             double variation =
-                    0.7 * noise(distance / 110, seed)
-                            + 0.3 * noise(distance / 310, seed ^ 0x6a09e667f3bcc909L);
-            pace[i] = natural ? 1 - 0.08 * front + (0.006 + 0.006 * front) * variation : 1;
+                    0.58 * noise(distance / 145, seed)
+                            + 0.25 * noise(distance / 330, seed ^ 0x6a09e667f3bcc909L)
+                            + 0.17 * Math.sin(distance / 1000.0 * 2.7 + phase);
+            // Later variation is wide enough to survive Keep's whole-second split display.
+            pace[i] = natural ? 1 - 0.08 * front + (0.020 + 0.010 * front) * variation : 1;
             if (i > 0) effort[i] = effort[i - 1] + (pace[i - 1] + pace[i]) * 0.5 * step;
         }
         double mean = effort[count] / total;

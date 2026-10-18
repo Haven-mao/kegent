@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-18T15:50:23Z",
+  "generatedAt": "2026-10-18T19:22:35Z",
   "title": "Design System: kgent",
   "extensions": {
     "colorMeta": {
@@ -334,14 +334,15 @@
           "markerOuterRadius": "7dp",
           "markerInnerRadius": "4dp",
           "accessibility": "Route name, point count, and approximate length in the view content description.",
-          "mapContext": "Route geometry is an overview. Help points to Keep record details → Fullscreen → Layers → Street for geographic tiles; Hide map shows a flat background."
+          "mapContext": "Route geometry is an overview. Help points to Keep record details → Fullscreen → Layers → tap the Street thumbnail → confirm; tapping the text alone may not trigger the layer. Hide map shows a flat background; no map imagery is synthesized in kgent."
         },
         "historyReview": {
           "class": "LinearLayout with TextView",
           "shape": "Rectangular tonal inset; no custom corner drawable.",
           "state": "Hidden until one record is prepared; edits invalidate it.",
           "totals": "Natural and uniform modes preserve the requested duration, total distance, and average pace.",
-          "coordinateBoundary": "New Keep history handoffs adapt standard GPS/WGS84 route points to GCJ-02 through KeepCoordinates. GPX retains GPS coordinates. Existing cloud records are not rewritten, and alignment of a newly converted cloud record is not independently verified."
+          "coordinateBoundary": "New Keep history handoffs adapt standard GPS/WGS84 route points to GCJ-02 through KeepCoordinates. GPX retains GPS coordinates. Existing cloud records are not rewritten, and alignment of a newly converted cloud record is not independently verified.",
+          "sourceBadge": "KeepRecordBuilder writes source=keep_app and source_page=keep_app in the detail payload; insertSql keeps sourceType=OFFLINE in the SQLite summary. Local parser and unit-test evidence do not establish cloud/list source-badge acceptance."
         },
         "footer": {
           "activeRun": "Show status, distance/time, progress, pause/resume, and end in either mode.",
@@ -374,6 +375,7 @@
           "live": "Disabled while active or busy; live form displays current pace and speed during the run.",
           "history": "Changing the switch invalidates the prepared review. Duration, total distance, and average pace stay tied to the requested inputs.",
           "explanation": "Runs over 1 km start slightly faster, settle through the first kilometer, then retain small smooth changes.",
+          "algorithm": "PaceProfile combines interpolated low-frequency noise at 145 m and 330 m with a sine component (weights 0.58, 0.25, and 0.17). The amplitude coefficient is 0.020–0.030, the opening factor applies a smooth first-kilometer speed-up, and the integrated curve is normalized by its mean so requested duration, distance, and average pace remain fixed.",
           "algorithmAuthority": "core/PaceProfile.java and README.md explain the algorithm; numerical coefficients are not visual tokens.",
           "styling": "Track and thumb states remain native Material defaults."
         }
@@ -408,14 +410,10 @@
         "README.md"
       ],
       "reviewEvidence": {
-        "verdict": ".impeccable/review/refinements/finish-review.md",
+        "verdict": ".impeccable/review/refinements-v2-finish-review.md",
         "disposition": "ship",
-        "scope": "Authorized control-contrast, second-level selection, natural/uniform pace, map-help, and handoff refinements; reviewer accepted all 14 required native captures with no material fixes.",
-        "sampledExistingCaptures": [
-          ".impeccable/review/refinements/tablet-live.png",
-          ".impeccable/review/refinements/phone-dark-seconds.png"
-        ],
-        "notEstablished": "The supplied Keep evidence establishes layer recovery, not new converted cloud-record alignment, correction of existing cloud records, or cloud acceptance. This documentation pass performed no device operations or new captures.",
+        "scope": "Authorized control-contrast, second-level selection, natural/uniform pace, map-help, and handoff refinements; the review validates two new 600x1100 captures plus the prior 14 refinement captures with no material fixes.",
+        "notEstablished": "The supplied Keep evidence establishes layer recovery, not new converted cloud-record alignment, correction of existing cloud records, or cloud/list source-badge acceptance. This documentation pass performed no screenshot or device operations.",
         "materialFixes": []
       }
     }
@@ -547,6 +545,8 @@
       "Do draw actual route geometry and cancel superseded motion.",
       "Do honor system animation settings for reveals and progress.",
       "Do label generated history, local preparation, and Keep handoff according to the actual state.",
+      "Do keep the Keep map help path explicit about tapping the Street thumbnail and confirming the layer.",
+      "Do preserve the distinction between detail source fields (keep_app) and the offline summary classification (OFFLINE).",
       "Do retain raster provenance and use the provenance manifest when checking asset changes."
     ],
     "donts": [
@@ -555,6 +555,7 @@
       "Don't add decorative shadows to the flat workspace cards.",
       "Don't hide an active run's controls behind a disabled history action.",
       "Don't label a prepared or locally handed-off record as verified cloud success.",
+      "Don't infer cloud/list source-badge acceptance from local JSON or SQLite fields alone.",
       "Don't treat provenance JSON sidecars as Android drawable or mipmap resources."
     ]
   }
