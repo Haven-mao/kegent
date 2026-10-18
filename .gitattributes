@@ -1,0 +1,2 @@
+# Preserve the recovered KML bytes, including its original coordinate separator.
+app/src/main/res/raw/dutpj_mutipoint.kml -text -whitespace

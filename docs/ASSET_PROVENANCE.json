@@ -1,0 +1,79 @@
+[
+  {
+    "path": "app/src/main/res/drawable/ka_squ.jpg",
+    "sha256": "27bdf1d36f7bdeb92a61bbae28ed34a8aedc3fcd68ba1bb79a12eb3986ae5d79",
+    "origin": "Recovered byte-for-byte from the user-provided installed KmAo APK",
+    "source_sha256": "f4191971b267fa75727bc6e2d51ddcd727cedd05a0088b3a69c876636f7cc6ed",
+    "metadata": "Origin recorded in a JPEG comment by Impeccable; decoded pixels verified unchanged."
+  },
+  {
+    "path": "app/src/main/res/mipmap-hdpi/ic_launcher.webp",
+    "sha256": "dd00996198640ed28fbc09cdcd7a3807cf8707f3eb255b659634da3ca6a6ff01",
+    "origin": "Existing project asset preserved from baseline commit 59418db",
+    "source_sha256": "dd00996198640ed28fbc09cdcd7a3807cf8707f3eb255b659634da3ca6a6ff01",
+    "metadata": "Origin recorded in an adjacent .webp.json sidecar by Impeccable; decoded pixels verified unchanged."
+  },
+  {
+    "path": "app/src/main/res/mipmap-hdpi/ic_launcher_round.webp",
+    "sha256": "1ed73f5341a69d3b41c7e02e126803f50cc8c3284adf4bbb737f0c93577aef07",
+    "origin": "Existing project asset preserved from baseline commit 59418db",
+    "source_sha256": "1ed73f5341a69d3b41c7e02e126803f50cc8c3284adf4bbb737f0c93577aef07",
+    "metadata": "Origin recorded in an adjacent .webp.json sidecar by Impeccable; decoded pixels verified unchanged."
+  },
+  {
+    "path": "app/src/main/res/mipmap-mdpi/ic_launcher.webp",
+    "sha256": "846219e6f72fe9a6c104ca8919cbee36a101e7d2ff8da9da67b689a5888f060d",
+    "origin": "Existing project asset preserved from baseline commit 59418db",
+    "source_sha256": "846219e6f72fe9a6c104ca8919cbee36a101e7d2ff8da9da67b689a5888f060d",
+    "metadata": "Origin recorded in an adjacent .webp.json sidecar by Impeccable; decoded pixels verified unchanged."
+  },
+  {
+    "path": "app/src/main/res/mipmap-mdpi/ic_launcher_round.webp",
+    "sha256": "4e2c58b91de01130e6479e00cbbaaf6e77cd961dd2c8e303cf13cd077fa92632",
+    "origin": "Existing project asset preserved from baseline commit 59418db",
+    "source_sha256": "4e2c58b91de01130e6479e00cbbaaf6e77cd961dd2c8e303cf13cd077fa92632",
+    "metadata": "Origin recorded in an adjacent .webp.json sidecar by Impeccable; decoded pixels verified unchanged."
+  },
+  {
+    "path": "app/src/main/res/mipmap-xhdpi/ic_launcher.webp",
+    "sha256": "398340dad816fc9a6338cb151a8cf1e45b926f9bfb70628b24c4bd2523cc94d4",
+    "origin": "Existing project asset preserved from baseline commit 59418db",
+    "source_sha256": "398340dad816fc9a6338cb151a8cf1e45b926f9bfb70628b24c4bd2523cc94d4",
+    "metadata": "Origin recorded in an adjacent .webp.json sidecar by Impeccable; decoded pixels verified unchanged."
+  },
+  {
+    "path": "app/src/main/res/mipmap-xhdpi/ic_launcher_round.webp",
+    "sha256": "91b490aef86574901137f0a252272e1f1add99c1ad709e0696ed68929b88d261",
+    "origin": "Existing project asset preserved from baseline commit 59418db",
+    "source_sha256": "91b490aef86574901137f0a252272e1f1add99c1ad709e0696ed68929b88d261",
+    "metadata": "Origin recorded in an adjacent .webp.json sidecar by Impeccable; decoded pixels verified unchanged."
+  },
+  {
+    "path": "app/src/main/res/mipmap-xxhdpi/ic_launcher.webp",
+    "sha256": "58ae87fa0c5b5d1562d27fd648d2c061553fe20e3ed570bde588162d01ea7a27",
+    "origin": "Existing project asset preserved from baseline commit 59418db",
+    "source_sha256": "58ae87fa0c5b5d1562d27fd648d2c061553fe20e3ed570bde588162d01ea7a27",
+    "metadata": "Origin recorded in an adjacent .webp.json sidecar by Impeccable; decoded pixels verified unchanged."
+  },
+  {
+    "path": "app/src/main/res/mipmap-xxhdpi/ic_launcher_round.webp",
+    "sha256": "3009fad079f5772f30ecd767f98924367fbe0f81c30048d672d4fda2d5ca7d12",
+    "origin": "Existing project asset preserved from baseline commit 59418db",
+    "source_sha256": "3009fad079f5772f30ecd767f98924367fbe0f81c30048d672d4fda2d5ca7d12",
+    "metadata": "Origin recorded in an adjacent .webp.json sidecar by Impeccable; decoded pixels verified unchanged."
+  },
+  {
+    "path": "app/src/main/res/mipmap-xxxhdpi/ic_launcher.webp",
+    "sha256": "f98fef5bc3bfe5b65692c40ad1cbae2bec4faf9f1b249c397626740db71b62d8",
+    "origin": "Existing project asset preserved from baseline commit 59418db",
+    "source_sha256": "f98fef5bc3bfe5b65692c40ad1cbae2bec4faf9f1b249c397626740db71b62d8",
+    "metadata": "Origin recorded in an adjacent .webp.json sidecar by Impeccable; decoded pixels verified unchanged."
+  },
+  {
+    "path": "app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.webp",
+    "sha256": "5faf033745c8c882c43bb1b372d4e4a5890caec63d9892a2e756c954108b85dc",
+    "origin": "Existing project asset preserved from baseline commit 59418db",
+    "source_sha256": "5faf033745c8c882c43bb1b372d4e4a5890caec63d9892a2e756c954108b85dc",
+    "metadata": "Origin recorded in an adjacent .webp.json sidecar by Impeccable; decoded pixels verified unchanged."
+  }
+]

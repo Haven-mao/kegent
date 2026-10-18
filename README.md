@@ -1,34 +1,40 @@
-# dlut-FakeRun
+# kgent
 
-内置了 dlut 的操场路径 可以模拟校园跑 随时更改速度
+Android 路线与跑步配置工具，应用 ID 与源码包名统一为 `com.haven.kgent`。
 
-> [!CAUTION]
-> 本项目仅供娱乐，请合理使用。
+## 实时跑步
 
-## 使用方式
+选择内置的 DUTPJ 400 米路线或导入 KML，配置速度、路线次数、更新间隔、海拔和定位精度。轨迹预览来自真实 KML 坐标，配速与总距离即时计算。运行由前台服务负责，支持暂停、继续、调速、结束和通知栏操作。开放路线到终点后折返，闭合路线循环运行。
 
-- **真机环境：**
+主题保留已安装 KmAo 的浅蓝色 `#DAF0FB`，支持深色模式、窄屏与横屏；页面切换和状态反馈使用原生 Android 动效，并遵循系统动画开关。
 
-  - 推荐 Android 11 及以上，无需 root
-  - 1. 启用 `开发者选项`
-  - 2. 在 `选择位置模拟信息应用` 中选择该应用
-  - 3. 点击开始直接运行模拟
-  - 推荐使用 `悬浮窗`方式前台运行，后台运行可能会不稳定。
-  - 支持 `小米运动健康`、`华为运动健康`等，**但不支持 `Keep`**。
+在真机上使用实时定位前，需要授予位置权限并在开发者选项中选择 kgent 作为模拟定位应用。模拟定位是否被其他应用接收取决于其自身行为。
 
-- **模拟器环境：**
+## 单条历史补跑
 
-  - 推荐使用 `BlueStacks 5 China`，选择 Android 11 系统。
-  - 主流模拟器 **无需配置** 点击开始直接运行模拟
-  - 支持 `Keep`、`小米运动健康`等运动健康 App。
+在「历史补跑」页选择过去的起止时间、路线和配速，并填写用于步数与热量估算的步频、体重。先预览生成结果，再决定导出 GPX，或检查本机 Keep 后进行交接。
 
-## 自定义路径
+当前本地接入适配 **Keep 8.7.30 / 49337**，需要设备已提供 Root 和 sqlite3。确认后备份本地索引、写入待同步详情与摘要，直接打开 Keep 的待上传列表，由用户核对并使用 Keep 本身的上传操作。界面只报告本地交接状态，最终云端结果以 Keep 为准。普通未 Root 设备仍可预览和导出 GPX。
 
-[https://github.com/LangQi99/dlut-FakeRun/blob/main/app/src/main/res/raw/three_km.kml](https://github.com/LangQi99/dlut-FakeRun/blob/main/app/src/main/res/raw/three_km.kml) 可以参考此文件 在 `google earth` 中自行绘制你自己需要的路径
+详见 [接入机制与边界](docs/KEEP_INTEGRATION.md)。
 
-后续可能会考虑更方便的方式
+## 编译和验证
 
-<p align="center">
-  <img src="image/README/1763449725545.png" alt="1763449725545" width="45%" style="display:inline-block; vertical-align:top;"/>
-  <img src="image/README/1763449799016.png" alt="1763449799016" width="45%" style="display:inline-block; vertical-align:top;"/>
-</p>
+需要 JDK 17 或更新版本、Android SDK 36。项目使用 Gradle 8.14.3 与 Android Gradle Plugin 8.13.0，minSdk 26、targetSdk 34。
+
+配置本机 `local.properties` 的 `sdk.dir` 后执行：
+
+```text
+./gradlew :app:exportDebugApk :app:testDebugUnitTest :app:lintDebug
+./gradlew :app:connectedDebugAndroidTest
+```
+
+Windows 使用 `gradlew.bat`。应用显示名与交付安装包名分别为 `kgent` 和 `kgent.apk`。`exportDebugApk` 生成的 debug APK 位于 `app/build/outputs/apk/kgent/kgent.apk`；包名同为 `com.haven.kgent`，与旧安装包可并存。
+
+常规设备测试只运行内存 SQLite 兼容性测试等，不写入 Keep 数据。`KeepHandoffIntegrationTest` 默认跳过；只有显式参数和宿主网络隔离同时存在时才允许本地交接验证。不要在未隔离网络的环境启用该测试。
+
+## 源码恢复与来源
+
+[恢复说明](docs/RECOVERY.md)记录从已安装 APK 找回的名称、配色、图标和默认路线，以及不能从 APK 恢复的内容。保留原项目路径计算的可读源码基础，新增模块拆分为 `core`、`ui`、`keep`。所有栅格素材的来源与摘要在 [素材记录](docs/ASSET_PROVENANCE.json)。
+
+原项目基于 [LangQi99/dlut-FakeRun](https://github.com/LangQi99/dlut-FakeRun)。

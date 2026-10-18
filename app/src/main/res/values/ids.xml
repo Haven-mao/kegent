@@ -1,0 +1,7 @@
+<resources>
+    <item name="primary_action" type="id"/>
+    <item name="live_speed" type="id"/>
+    <item name="history_start" type="id"/>
+    <item name="history_end" type="id"/>
+    <item name="history_pace" type="id"/>
+</resources>

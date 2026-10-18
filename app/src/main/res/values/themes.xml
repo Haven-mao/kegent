@@ -1,8 +1,21 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
     <style name="Base.Theme.FakeGPS" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your light theme here. -->
-        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+        <item name="colorPrimary">@color/primary_brand</item>
+        <item name="colorOnPrimary">@color/on_primary_brand</item>
+        <item name="colorSecondary">@color/ui_accent</item>
+        <item name="colorOnSecondary">@color/ui_surface</item>
+        <item name="colorSurface">@color/ui_surface</item>
+        <item name="colorOnSurface">@color/ui_text</item>
+        <item name="colorSurfaceVariant">@color/ui_tonal</item>
+        <item name="colorOnSurfaceVariant">@color/ui_muted</item>
+        <item name="colorOutline">@color/ui_outline</item>
+        <item name="colorError">@color/ui_error</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:statusBarColor">@color/ui_background</item>
+        <item name="android:navigationBarColor">@color/ui_background</item>
+        <item name="android:windowBackground">@color/ui_background</item>
+        <item name="android:fontFamily">sans</item>
     </style>
 
     <style name="Theme.FakeGPS" parent="Base.Theme.FakeGPS" />

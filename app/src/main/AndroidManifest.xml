@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="com.langqi.fakegps">
+    package="com.haven.kgent">
 
     <!-- 【位置相关权限】 -->
     <!-- 获取精确位置信息（GPS） -->
@@ -20,10 +20,16 @@
     <!-- 【前台服务和广播权限】 -->
     <!-- 允许启动前台服务，确保服务持续运行 -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <!-- 允许服务在设备启动完成后自动启动 -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <!-- 允许发送粘性广播 -->
     <uses-permission android:name="android.permission.BROADCAST_STICKY" />
+
+    <queries>
+        <package android:name="com.gotokeep.keep" />
+    </queries>
 
     <application
         android:allowBackup="true"
@@ -39,7 +45,7 @@
         <!-- 【服务声明】 -->
         <!-- 用于模拟位置信息的服务 -->
         <service
-            android:name="com.langqi.fakegps.LocationMockService"
+            android:name="com.haven.kgent.LocationMockService"
             android:exported="false"
             android:foregroundServiceType="location" />
 
@@ -56,7 +62,8 @@
 
         <activity
             android:name=".FakeGPSActivity"
-            android:exported="true" />
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
 
     </application>
 

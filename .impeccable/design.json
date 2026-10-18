@@ -1,0 +1,331 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-18T14:43:45Z",
+  "title": "Design System: kgent",
+  "extensions": {
+    "colorMeta": {
+      "primary_brand": { "role": "primary", "displayName": "Retained sky blue", "purpose": "Shared filled-action and Material colorPrimary resource in both themes." },
+      "on_primary_brand": { "role": "primary", "displayName": "Ink on sky", "purpose": "Shared foreground on the primary fill." },
+      "ui_background": { "role": "neutral", "displayName": "Cool ground", "purpose": "Screen, navigation, window, and system bars." },
+      "ui_surface": { "role": "neutral", "displayName": "Paper surface", "purpose": "Cards, footer, and route marker outer disk." },
+      "ui_tonal": { "role": "neutral", "displayName": "Tonal blue surface", "purpose": "Route canvas, history review, and progress track." },
+      "ui_text": { "role": "neutral", "displayName": "Primary ink", "purpose": "Titles, status, input values, and body copy." },
+      "ui_muted": { "role": "neutral", "displayName": "Muted slate", "purpose": "Supporting copy, inactive tabs, and default hints." },
+      "ui_accent": { "role": "primary", "displayName": "Route blue", "purpose": "Route, selected tabs, focused fields, and outlined action text; maps to Material colorSecondary." },
+      "ui_outline": { "role": "neutral", "displayName": "Soft outline", "purpose": "Borders, uncompleted route, and disabled primary fill." },
+      "ui_error": { "role": "error", "displayName": "Error red", "purpose": "Validation and error copy." },
+      "ui_background_night": { "role": "neutral", "displayName": "Night ground", "purpose": "values-night override of ui_background." },
+      "ui_surface_night": { "role": "neutral", "displayName": "Night surface", "purpose": "values-night override of ui_surface." },
+      "ui_tonal_night": { "role": "neutral", "displayName": "Night tonal blue", "purpose": "values-night override of ui_tonal." },
+      "ui_text_night": { "role": "neutral", "displayName": "Night foreground", "purpose": "values-night override of ui_text." },
+      "ui_muted_night": { "role": "neutral", "displayName": "Night muted slate", "purpose": "values-night override of ui_muted." },
+      "ui_accent_night": { "role": "primary", "displayName": "Night route blue", "purpose": "values-night override of ui_accent." },
+      "ui_outline_night": { "role": "neutral", "displayName": "Night outline", "purpose": "values-night override of ui_outline." },
+      "ui_error_night": { "role": "error", "displayName": "Night error red", "purpose": "values-night override of ui_error." }
+    },
+    "typographyMeta": {
+      "app-title": { "displayName": "App title", "purpose": "Top-bar app identity; Ui.text medium emphasis." },
+      "section-title": { "displayName": "Section title", "purpose": "Live and historical form headings; Ui.text medium emphasis." },
+      "route-title": { "displayName": "Route title", "purpose": "Wide route card heading; Ui.text medium emphasis." },
+      "route-title-compact": { "displayName": "Compact route title", "purpose": "Phone route summary heading; Ui.text medium emphasis." },
+      "status": { "displayName": "Run status", "purpose": "Wide route card state; Ui.text medium emphasis." },
+      "status-compact": { "displayName": "Compact run status", "purpose": "Phone footer state; Ui.text medium emphasis." },
+      "field": { "displayName": "Field value", "purpose": "TextInputEditText; inherits the native theme typeface." },
+      "body": { "displayName": "Review body", "purpose": "Historical record review copy from Ui.text." },
+      "button": { "displayName": "Action label", "purpose": "MaterialButton with normal case; typeface and weight inherit Material style." },
+      "note": { "displayName": "Supporting note", "purpose": "Route details, hints, and explanations from Ui.note." },
+      "metric-compact": { "displayName": "Compact metric", "purpose": "Phone footer distance and elapsed time, based on Ui.note." }
+    },
+    "shadows": [
+      {
+        "name": "workspace-card-elevation",
+        "value": "0dp",
+        "purpose": "MaterialCardView.setCardElevation(0); grouping uses surface tone and a native outline. Other Material state defaults are not redefined."
+      }
+    ],
+    "motion": [
+      {
+        "name": "state-reveal",
+        "value": "180ms",
+        "purpose": "Ui.reveal: cancel previous view animation, reveal from alpha 0.6 and translationY 6dp to alpha 1 and translationY 0."
+      },
+      {
+        "name": "route-progress",
+        "value": "220ms",
+        "purpose": "Interruptible interpolation from the displayed route distance; cancel on new target, route replacement, or detach."
+      },
+      {
+        "name": "native-easing",
+        "value": "android.view.animation.DecelerateInterpolator(2)",
+        "purpose": "Shared easing for view reveals and route-distance interpolation; no CSS approximation is normative."
+      },
+      {
+        "name": "material-progress",
+        "value": "LinearProgressIndicator.setProgressCompat(percent, ValueAnimator.areAnimatorsEnabled())",
+        "purpose": "Use the native library's progress animation. The app does not supply a duration override."
+      },
+      {
+        "name": "reduced-motion",
+        "value": "ValueAnimator.areAnimatorsEnabled()",
+        "purpose": "Reveal and route progress apply their final state immediately when system animators are disabled. History route previews are always immediate."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "wide-workspace",
+        "value": "840dp",
+        "purpose": "Configuration.screenWidthDp >= 840 selects horizontal panes; smaller widths stack the cards."
+      }
+    ],
+    "native": {
+      "platform": "android",
+      "stack": "Java / Android Views / Material 3",
+      "applicationId": "com.haven.kgent",
+      "theme": "Theme.Material3.DayNight.NoActionBar",
+      "units": {
+        "geometry": "dp converted by Ui.dp with density and Math.round",
+        "text": "sp via TextView.setTextSize(float)",
+        "policy": "Keep native units. They are not CSS dimensions and should not be silently converted to web tokens."
+      },
+      "colorResolution": {
+        "defaultFile": "app/src/main/res/values/colors.xml",
+        "nightFile": "app/src/main/res/values-night/colors.xml",
+        "nightDocumentationSuffix": "_night",
+        "policy": "Strip the documentation suffix to identify the same Android resource name in values-night. The brand pair inherits from values in both themes.",
+        "ramps": "No tonal ramps are authored in the app; none are synthesized as design tokens."
+      },
+      "typographyBehavior": {
+        "themeFontFamily": "sans",
+        "mediumTypeface": "Typeface.create(\"sans-serif-medium\", Typeface.NORMAL)",
+        "uiText": {
+          "includeFontPadding": false,
+          "lineSpacingExtra": "3dp",
+          "lineSpacingMultiplier": 1,
+          "fixedLineHeight": false,
+          "letterSpacingOverride": false
+        },
+        "materialWidgets": "MaterialButton and TextInputEditText do not use Ui.text; retain inherited native typography unless explicitly overridden.",
+        "buttonAllCaps": false
+      },
+      "layout": {
+        "root": "Vertical LinearLayout: top bar, TabLayout, weighted ScrollView, footer outside the scroll area.",
+        "widePaneWeights": [0.9, 1.1],
+        "widePaneGap": "{spacing.medium}",
+        "wideRouteHeight": "240dp",
+        "wideRouteTopGap": "18dp",
+        "compactRouteSize": "108dp × 100dp",
+        "pairedColumnInnerMargins": "6dp on each side; equal weights",
+        "footerPadding": "20dp 8dp 20dp 12dp (left, top, right, bottom)",
+        "footerButtonHeight": "56dp",
+        "footerButtonGap": "{spacing.small}",
+        "compactStatusMetricsGap": "10dp",
+        "logoSize": "36dp × 36dp"
+      },
+      "componentDetails": {
+        "button": {
+          "class": "com.google.android.material.button.MaterialButton",
+          "minimumHeight": "48dp",
+          "minimumWidth": "0dp",
+          "insetTop": "3dp",
+          "insetBottom": "3dp",
+          "borderResource": "ui_outline",
+          "unoverriddenBehavior": "Horizontal padding, ripple, pressed/focus behavior, and other Material style defaults are inherited."
+        },
+        "card": {
+          "class": "com.google.android.material.card.MaterialCardView",
+          "strokeWidth": "1dp",
+          "strokeResource": "ui_outline",
+          "paddingOwnership": "The route/form content supplies padding; Ui.card does not add it."
+        },
+        "field": {
+          "class": "TextInputLayout with TextInputEditText",
+          "mode": "BOX_BACKGROUND_OUTLINE",
+          "minimumEditHeight": "56dp",
+          "singleLine": true,
+          "selectAllOnFocus": true,
+          "defaultHintResource": "ui_muted",
+          "focusedHintAndStrokeResource": "ui_accent",
+          "error": "Native field error slot; clear the current field error on edit.",
+          "dates": "Start and end open native DatePickerDialog and TimePickerDialog."
+        },
+        "route": {
+          "class": "com.haven.kgent.ui.RoutePreviewView",
+          "geometry": "Actual selected KML route; centered with longitude corrected by cos(latitude).",
+          "maximumInset": "28dp",
+          "insetLimit": "16% of the smaller canvas dimension",
+          "strokeWidth": "3dp",
+          "strokeCapsAndJoins": "ROUND",
+          "uncompletedResource": "ui_outline",
+          "completedResource": "ui_accent",
+          "zeroDistance": "The full route is accent-colored.",
+          "markerOuterRadius": "7dp",
+          "markerInnerRadius": "4dp",
+          "accessibility": "Route name, point count, and approximate length in the view content description."
+        },
+        "historyReview": {
+          "class": "LinearLayout with TextView",
+          "shape": "Rectangular tonal inset; no custom corner drawable.",
+          "state": "Hidden until one record is prepared; edits invalidate it."
+        },
+        "footer": {
+          "activeRun": "Show status, distance/time, progress, pause/resume, and end in either mode.",
+          "historyDuringRun": "Primary disabled and labeled 结束后补跑.",
+          "idleHistory": "Hide compact live status; use preview then explicit Keep handoff.",
+          "accessibility": "Status, footer error, and connection messages use polite live regions where declared in source."
+        }
+      },
+      "componentSpecimenPolicy": "The component html fields render native Java source specimens as text. They do not simulate Android controls, invent CSS interaction states, or claim browser/Android visual equivalence.",
+      "assetProvenance": {
+        "manifest": "docs/ASSET_PROVENANCE.json",
+        "appBarImage": "app/src/main/res/drawable/ka_squ.jpg",
+        "jpeg": "Recovered KmAo pixels retained; provenance embedded as a JPEG comment. Source and current hashes are in the manifest.",
+        "webp": "Existing launcher pixels retained; provenance in adjacent .webp.json sidecars.",
+        "packaging": "app/build.gradle.kts prepares a generated resource directory, excluding **/*.webp.json. Packaging validation is outside this design document."
+      },
+      "sourceFiles": [
+        "app/src/main/java/com/haven/kgent/FakeGPSActivity.java",
+        "app/src/main/java/com/haven/kgent/ui/Ui.java",
+        "app/src/main/java/com/haven/kgent/ui/RoutePreviewView.java",
+        "app/src/main/res/values/colors.xml",
+        "app/src/main/res/values-night/colors.xml",
+        "app/src/main/res/values/themes.xml",
+        "app/src/main/res/values-night/themes.xml",
+        "app/src/main/res/values/strings.xml",
+        "app/build.gradle.kts"
+      ],
+      "reviewEvidence": {
+        "verdict": ".impeccable/review/finish-verdict.md",
+        "disposition": "ship",
+        "scope": "Two reviewed fixes: run-state continuity in phone history mode and short progress easing with reduced-motion support.",
+        "sampledExistingCaptures": [
+          ".impeccable/review/tablet-light.png",
+          ".impeccable/review/phone-dark-large.png",
+          ".impeccable/review/phone-history-running.png"
+        ],
+        "notEstablished": "This document does not certify an APK build/install or Keep server acceptance. No new screenshot was captured."
+      }
+    }
+  },
+  "components": [
+    {
+      "name": "Primary action",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Native filled MaterialButton with the shared blue brand pair; Java source specimen.",
+      "html": "<pre class=\"ds-native-source\"><code>primary = Ui.button(this, \"开始运行\", true);</code></pre>",
+      "css": ".ds-native-source { white-space: pre-wrap; overflow-wrap: anywhere; }"
+    },
+    {
+      "name": "Disabled primary action",
+      "kind": "button",
+      "refersTo": "button-primary-disabled",
+      "description": "Native disabled state uses the outline fill; active history mode explains the prerequisite. Java source specimen.",
+      "html": "<pre class=\"ds-native-source\"><code>primary.setEnabled(!busy &amp;&amp; route != null &amp;&amp; (!history || !active));</code></pre>",
+      "css": ".ds-native-source { white-space: pre-wrap; overflow-wrap: anywhere; }"
+    },
+    {
+      "name": "Outlined action",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Native outlined MaterialButton for route selection and contextual controls; Java source specimen.",
+      "html": "<pre class=\"ds-native-source\"><code>browse = Ui.button(this, \"选择路线\", false);</code></pre>",
+      "css": ".ds-native-source { white-space: pre-wrap; overflow-wrap: anywhere; }"
+    },
+    {
+      "name": "Outlined field",
+      "kind": "input",
+      "refersTo": "field-outline",
+      "description": "Native labeled TextInputLayout and TextInputEditText, with explicit units and input type; Java source specimen.",
+      "html": "<pre class=\"ds-native-source\"><code>speed = field(\"速度 · m/s\", \"speed\", \"3.00\", decimal);</code></pre>",
+      "css": ".ds-native-source { white-space: pre-wrap; overflow-wrap: anywhere; }"
+    },
+    {
+      "name": "Workspace card",
+      "kind": "card",
+      "refersTo": "workspace-card",
+      "description": "Flat native MaterialCardView; content owns its internal padding. Java source specimen.",
+      "html": "<pre class=\"ds-native-source\"><code>left.setPadding(dp(20), dp(20), dp(20), dp(20));\nView leftCard = Ui.card(this, left);</code></pre>",
+      "css": ".ds-native-source { white-space: pre-wrap; overflow-wrap: anywhere; }"
+    },
+    {
+      "name": "Mode tabs",
+      "kind": "nav",
+      "refersTo": "mode-navigation",
+      "description": "Native TabLayout with muted/selected accent text and an accent indicator; Java source specimen.",
+      "html": "<pre class=\"ds-native-source\"><code>TabLayout tabs = new TabLayout(this);\ntabs.setTabTextColors(Ui.color(this, R.color.ui_muted), Ui.color(this, R.color.ui_accent));\ntabs.setSelectedTabIndicatorColor(Ui.color(this, R.color.ui_accent));\ntabs.addTab(tabs.newTab().setText(\"实时跑步\"));\ntabs.addTab(tabs.newTab().setText(\"历史补跑\"));</code></pre>",
+      "css": ".ds-native-source { white-space: pre-wrap; overflow-wrap: anywhere; }"
+    },
+    {
+      "name": "Actual route preview",
+      "kind": "custom",
+      "refersTo": "route-preview",
+      "description": "Native Canvas geometry with interruptible progress and system animation support; Java source specimen.",
+      "html": "<pre class=\"ds-native-source\"><code>routeView = new RoutePreviewView(this);\nrouteView.setDistance(s.distance, true);</code></pre>",
+      "css": ".ds-native-source { white-space: pre-wrap; overflow-wrap: anywhere; }"
+    },
+    {
+      "name": "Historical record review",
+      "kind": "custom",
+      "refersTo": "history-review",
+      "description": "Rectangular native tonal inset for the single prepared record; Java source specimen.",
+      "html": "<pre class=\"ds-native-source\"><code>review = Ui.column(this);\nreview.setPadding(dp(14), dp(14), dp(14), dp(14));\nreview.setBackgroundColor(Ui.color(this, R.color.ui_tonal));\nreviewText = Ui.text(this, \"\", 14, false);\nreview.addView(reviewText);</code></pre>",
+      "css": ".ds-native-source { white-space: pre-wrap; overflow-wrap: anywhere; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "Route-first running workspace",
+    "overview": "kgent is a compact native Android tool for configuring route playback and preparing one historical run. Its visual identity retains the installed KmAo light blue and original artwork, with ink-blue text, cool surfaces, and native Material controls. The app title is kgent; the package is `com.haven.kgent`.\n\nThe interface gives route geometry, editable parameters, and current run state clear roles. Quiet outlines and tonal panels organize a practical workspace. Motion explains a state change or progress update. Light and dark themes share the same blue family, and text uses Android's scalable native typography.",
+    "keyCharacteristics": [
+      "Retained light-blue identity with cool neutral surfaces.",
+      "Native Material 3 controls and Android dp/sp units.",
+      "Actual route geometry paired with visible run status.",
+      "Compact forms, persistent actions, and restrained state motion.",
+      "One historical record with explicit preview and handoff states."
+    ],
+    "rules": [
+      {
+        "name": "The Blue Continuity Rule",
+        "body": "Use the existing blue and neutral resource roles in both themes. Do not introduce a green UI palette. The original artwork's grass pixels belong to the retained image, not to the control palette.",
+        "section": "colors"
+      },
+      {
+        "name": "The Resource Pair Rule",
+        "body": "Resolve colors through Android resources. Keep the shared brand pair stable and use the corresponding night overrides for surfaces, text, outlines, accents, and errors.",
+        "section": "colors"
+      },
+      {
+        "name": "The Native Scale Rule",
+        "body": "Keep text in sp and geometry in dp. Preserve wrapping and the scrollable form when Android font scaling increases; do not compress the layout by fixing text heights.",
+        "section": "typography"
+      },
+      {
+        "name": "The Visible Run Rule",
+        "body": "Switching tabs must preserve the active run's status, distance/time, progress, and pause/resume/end controls. A blocked history action explains its state with “结束后补跑”.",
+        "section": "layout"
+      },
+      {
+        "name": "The Quiet Surface Rule",
+        "body": "Reuse surface tone and outlines to group workspace content. Keep cards flat at rest instead of adding decorative elevation.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do retain the existing blue brand pair, original artwork, and kgent identity.",
+      "Do resolve all theme colors through Android resources and their night overrides.",
+      "Do use native Material controls, dp geometry, sp text, and system font scaling.",
+      "Do keep active-run status and controls available when switching modes.",
+      "Do draw actual route geometry and cancel superseded motion.",
+      "Do honor system animation settings for reveals and progress.",
+      "Do label generated history, local preparation, and Keep handoff according to the actual state.",
+      "Do retain raster provenance and use the provenance manifest when checking asset changes."
+    ],
+    "donts": [
+      "Don't introduce a green UI palette or recolor the retained artwork to remove its original grass pixels.",
+      "Don't invent browser tokens, hover states, font families, or tonal scales for this native app.",
+      "Don't add decorative shadows to the flat workspace cards.",
+      "Don't hide an active run's controls behind a disabled history action.",
+      "Don't label a prepared or locally handed-off record as verified cloud success.",
+      "Don't treat provenance JSON sidecars as Android drawable or mipmap resources."
+    ]
+  }
+}

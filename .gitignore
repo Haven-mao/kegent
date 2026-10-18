@@ -13,3 +13,9 @@
 .externalNativeBuild
 .cxx
 local.properties
+/.idea/
+/.vscode/
+/.impeccable/review/
+/.impeccable/mocks/
+/.impeccable/tmp/
+*.apk

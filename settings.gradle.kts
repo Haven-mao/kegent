@@ -19,6 +19,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "FakeGPS"
+rootProject.name = "kgent"
 include(":app")
- 
