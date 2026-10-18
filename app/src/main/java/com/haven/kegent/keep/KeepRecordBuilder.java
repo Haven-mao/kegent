@@ -10,6 +10,8 @@ import org.json.JSONObject;
 /** Keep 8.7.30 OutdoorActivity storage format, verified against the installed APK. */
 public final class KeepRecordBuilder {
     public static final String KEEP_VERSION = "8.7.30";
+    /** Keep's SummarySourceType.OFFLINE.h() value used by the local summary database. */
+    public static final String SUMMARY_SOURCE_OFFLINE = "offline";
 
     private KeepRecordBuilder() {}
 
@@ -43,7 +45,11 @@ public final class KeepRecordBuilder {
                 .put("recoveryFixingUiPending", false);
         data.put("trainingSource", "sports_container_outdoorRunning")
                 .put("trainingTrace", "sports_container_outdoorRunning");
-        // Keep's history list uses these fields for the native "Keep App" source badge.
+        // Keep's OutdoorActivity vendor is what the detail/history UI uses for the native badge.
+        data.put(
+                "vendor",
+                new JSONObject().put("source", "KEEP").put("genre", "KEEP_APP"));
+        // These source fields are also consumed by the upload/analytics path.
         data.put("source", "keep_app").put("source_page", "keep_app");
         data.put("businessInfo", new JSONObject()).put("businessPassThroughInfo", new JSONObject());
         data.put(
@@ -131,7 +137,9 @@ public final class KeepRecordBuilder {
                 + run.startTime
                 + ","
                 + run.endTime
-                + ",'run','OFFLINE',NULL,NULL);";
+                + ",'run',"
+                + quote(SUMMARY_SOURCE_OFFLINE)
+                + ",NULL,NULL);";
     }
 
     public static String quote(String value) {

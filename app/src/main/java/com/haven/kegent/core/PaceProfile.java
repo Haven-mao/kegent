@@ -19,11 +19,11 @@ public final class PaceProfile {
             double front = total > 1000 ? 1 - smooth((distance - 600) / 400) : 0;
             double phase = (seed & 0xffffL) / 65535.0 * Math.PI * 2;
             double variation =
-                    0.58 * noise(distance / 145, seed)
-                            + 0.25 * noise(distance / 330, seed ^ 0x6a09e667f3bcc909L)
-                            + 0.17 * Math.sin(distance / 1000.0 * 2.7 + phase);
-            // Later variation is wide enough to survive Keep's whole-second split display.
-            pace[i] = natural ? 1 - 0.08 * front + (0.020 + 0.010 * front) * variation : 1;
+                    0.58 * noise(distance / 280, seed)
+                            + 0.25 * noise(distance / 700, seed ^ 0x6a09e667f3bcc909L)
+                            + 0.17 * Math.sin(distance / 1600.0 * 2.4 + phase);
+            // Use wider, low-frequency changes so whole-second Keep splits visibly differ.
+            pace[i] = natural ? 1 - 0.08 * front + (0.028 + 0.010 * front) * variation : 1;
             if (i > 0) effort[i] = effort[i - 1] + (pace[i - 1] + pace[i]) * 0.5 * step;
         }
         double mean = effort[count] / total;

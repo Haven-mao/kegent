@@ -6,7 +6,7 @@
 
 1.2.0 支持整秒起止时间。自然配速将前一公里的较快阶段与后段的低幅平滑变化组合，再对整条曲线积分归一化。因此指定的平均配速、总时长与最终距离仍一致；每个点的距离增量、速度和即时配速来自同一曲线。以时间和路线为种子固定同一条记录的变化，预览、GPX 和 Keep 详情不会各自生成不同运动。匀速模式保留。
 
-1.2.1 补齐 `OutdoorActivity` 的 `source` 与 `source_page` 为 `keep_app`。Keep 的历史列表通过这两个来源字段显示“Keep App”徽标；SQLite 摘要的 `sourceType=OFFLINE` 仍保留，用于表示本地离线待同步分类，两者职责不同。
+本次修复为 `OutdoorActivity.vendor` 写入 `source=KEEP`、`genre=KEEP_APP`，并保留详情 `source=keep_app`、`source_page=keep_app`；SQLite 摘要使用 Keep `SummarySourceType.OFFLINE.h()` 的规范值 `sourceType=offline`。Keep 待上传列表读取这些来源后显示“Keep App 离线数据”，详情文件也可按 Keep 的 OutdoorActivity 结构解析。
 
 KML/GPS 使用 WGS84。已安装版本的 `ha0.d` 使用腾讯定位结果，`TencentLocationManager` 的默认类型为 GCJ-02（`c.t.m.g.n7.d = 1`），`xx.x.v` 直接将定位坐标写入 `OutdoorGEOPoint`。交接适配器在国内常用转换范围内对 KML 点做 WGS84 → GCJ-02 转换；明确超出范围的点保留原坐标。这要求输入为标准 GPS KML，不应将已转换的高德/腾讯坐标再次当作 GPS 导入。GPX 和实时模拟定位保留 WGS84。
 

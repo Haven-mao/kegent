@@ -45,13 +45,14 @@ public class KeepStorageContractTest {
             db.execSQL(sql);
             try (Cursor c =
                     db.rawQuery(
-                            "SELECT recordType,totalDuration,endTime FROM t_log_summary WHERE"
+                            "SELECT recordType,sourceType,totalDuration,endTime FROM t_log_summary WHERE"
                                     + " logId=?",
                             new String[] {id})) {
                 assertTrue(c.moveToFirst());
                 assertEquals("run", c.getString(0));
-                assertEquals(1800, c.getLong(1));
-                assertEquals(run.endTime, c.getLong(2));
+                assertEquals(KeepRecordBuilder.SUMMARY_SOURCE_OFFLINE, c.getString(1));
+                assertEquals(1800, c.getLong(2));
+                assertEquals(run.endTime, c.getLong(3));
             }
             try {
                 db.execSQL(sql);

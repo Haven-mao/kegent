@@ -33,6 +33,8 @@ public class KeepRecordBuilderTest {
         JSONObject data = KeepRecordBuilder.build(run, "test-user");
         JSONArray points = data.getJSONArray("geoPoints");
         assertEquals("outdoorRunning", data.getString("dataType"));
+        assertEquals("KEEP", data.getJSONObject("vendor").getString("source"));
+        assertEquals("KEEP_APP", data.getJSONObject("vendor").getString("genre"));
         assertEquals("keep_app", data.getString("source"));
         assertEquals("keep_app", data.getString("source_page"));
         assertFalse(data.getBoolean("isUploaded"));

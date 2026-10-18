@@ -22,6 +22,14 @@ public class PaceProfileTest {
                     roundedSplits[0] != roundedSplits[1]
                             || roundedSplits[1] != roundedSplits[2]
                             || roundedSplits[2] != roundedSplits[3]);
+            long minimum = roundedSplits[0], maximum = roundedSplits[0];
+            for (long split : roundedSplits) {
+                minimum = Math.min(minimum, split);
+                maximum = Math.max(maximum, split);
+            }
+            assertTrue(
+                    "later split variation should survive whole-second display",
+                    maximum - minimum >= 5);
             assertEquals(5000, p.effortAt(5000), 0);
             assertEquals(5000, p.distanceAt(5000), 0);
         }
@@ -36,7 +44,7 @@ public class PaceProfileTest {
             assertTrue(distance >= priorDistance);
             assertEquals(effort, p.effortAt(distance), 1e-7);
             double speed = p.speedFactorAt(distance);
-            assertTrue(Math.abs(speed - priorSpeed) < 0.002);
+            assertTrue(Math.abs(speed - priorSpeed) < 0.0025);
             assertTrue(speed > 0.94 && speed < 1.11);
             priorDistance = distance;
             priorSpeed = speed;

@@ -27,7 +27,7 @@ Configure a route, control real-time playback, and prepare one historical runnin
 - Start/end inputs support seconds and migrate prior minute-only settings. Natural pace starts faster for runs over 1 km, settles after 1 km, and preserves historical duration, distance and average pace; uniform mode remains available.
 - Standard KML/GPX coordinates are GPS/WGS84. Keep handoff adapts coordinates to its Tencent/GCJ-02 location chain. Keep's own map layer must be visible (for example Street) to display geographic tiles.
 - Distinguish local preparation, delivery to Keep, and server confirmation. Do not report unverified cloud success.
-- Historical Keep handoff should preserve the native `Keep App` source label by writing the client source fields alongside the offline summary classification.
+- Historical Keep handoff should preserve the native `Keep App` source label by writing the `KEEP_APP` vendor identity and client source fields alongside the normalized offline summary classification.
 - Validate parameters, retain user input, and preserve data through recoverable errors.
 - Changes are committed locally on main; no remote push is requested.
 
