@@ -1,4 +1,4 @@
-# kgent
+# kegent
 
 <!-- impeccable:product-schema 1 -->
 
@@ -12,7 +12,7 @@ Existing Java / Android Views project, Material 3 components, Gradle.
 
 ## Users
 
-The owner uses kgent on BlueStacks to configure and run virtual location routes.
+The owner uses kegent on BlueStacks to configure and run virtual location routes.
 
 ## Product Purpose
 
@@ -20,7 +20,9 @@ Configure a route, control real-time playback, and prepare one historical runnin
 
 ## Capabilities and Constraints
 
-- Preserve the installed KmAo blue palette and logo; use the requested kgent name and com.haven.kgent package, existing KML route workflow, pause/resume/stop, speed adjustment, and the restored DUTPJ 400 m route.
+- Preserve the installed KmAo blue palette and logo; use the requested kegent name and com.haven.kegent package, existing KML route workflow, pause/resume/stop, speed adjustment, and the restored DUTPJ 400 m route.
+- The top bar keeps the tabs close to the title, moves help left of a day/night capsule, and clips the original logo into a rounded square. Dark mode uses #121212 as the page ground.
+- Route preview loads real OpenStreetMap street tiles asynchronously with attribution and an offline block-style fallback when connectivity or the tile service is unavailable.
 - Historical work is one record at a time, with a past start/end time, route, and pace. Confirmed by the user on 2026-10-18.
 - Start/end inputs support seconds and migrate prior minute-only settings. Natural pace starts faster for runs over 1 km, settles after 1 km, and preserves historical duration, distance and average pace; uniform mode remains available.
 - Standard KML/GPX coordinates are GPS/WGS84. Keep handoff adapts coordinates to its Tencent/GCJ-02 location chain. Keep's own map layer must be visible (for example Street) to display geographic tiles.

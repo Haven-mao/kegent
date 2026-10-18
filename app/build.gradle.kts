@@ -9,15 +9,15 @@ val packagedResources = tasks.register<Sync>("prepareAppResources") {
 }
 
 android {
-    namespace = "com.haven.kgent"
+    namespace = "com.haven.kegent"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.haven.kgent"
+        applicationId = "com.haven.kegent"
         minSdk = 26
         targetSdk = 34
-        versionCode = 4
-        versionName = "1.2.1"
+        versionCode = 5
+        versionName = "1.3.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -57,9 +57,9 @@ dependencies {
 
 tasks.register<Copy>("exportDebugApk") {
     group = "build"
-    description = "Builds the installable kgent.apk debug package."
+    description = "Builds the installable kegent.apk debug package."
     dependsOn("assembleDebug")
     from(layout.buildDirectory.file("outputs/apk/debug/app-debug.apk"))
-    into(layout.buildDirectory.dir("outputs/apk/kgent"))
-    rename { "kgent.apk" }
+    into(layout.buildDirectory.dir("outputs/apk/kegent"))
+    rename { "kegent.apk" }
 }

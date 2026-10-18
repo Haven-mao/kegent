@@ -1,6 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android" android:versionCode="1" android:versionName="1.0">
-    <application android:label="kgent QA" android:icon="@drawable/kgent_test_icon">
-        <activity android:name="com.haven.kgent.test.TestLauncherActivity" android:exported="true">
+    <application android:label="kegent QA" android:icon="@drawable/kegent_test_icon">
+        <activity android:name="com.haven.kegent.test.TestLauncherActivity" android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />

@@ -6,13 +6,13 @@
 
 已确认并恢复的资源：
 
-- 原应用名称 KmAo；按用户后续要求，新构建显示名与交付文件改为 `kgent`、`kgent.apk`。
+- 原应用名称 KmAo；按用户后续要求，新构建显示名与交付文件改为 `kegent`、`kegent.apk`。
 - 原浅蓝主题色 #DAF0FB；本次扩展了对应的深色语义色。
 - `ka_squ.jpg` 原图标素材。来源为用户本机已安装 APK，原始文件 SHA-256 为 `f4191971b267fa75727bc6e2d51ddcd727cedd05a0088b3a69c876636f7cc6ed`。
 - `dutpj_mutipoint.kml` 默认路线，191 个点，实机计算约 400.04 m；SHA-256 为 `33efb4cf3bc477083e633cbd17253bc14c37901e7e53843aa2a315b76b49337a`。
 - 图标素材追加了来源元数据，解码后的全部像素保持一致；当前打包文件摘要见 `ASSET_PROVENANCE.json`。
 - 原项目的 224 点 `three_km.kml` 仍保留为已有资源。
 
-按用户后续要求，所有活动源码、namespace、applicationId、Manifest 组件引用与测试包统一迁移到 **com.haven.kgent**。由于包名已经改变，安装新构建会与蓝叠中的旧 KmAo 并存。原安装包的签名和本机 debug 签名不一致，不能从 APK 还原签名私钥。
+按用户后续要求，所有活动源码、namespace、applicationId、Manifest 组件引用与测试包统一迁移到 **com.haven.kegent**。由于包名已经改变，安装新构建会与蓝叠中的旧 KmAo 并存。原安装包的签名和本机 debug 签名不一致，不能从 APK 还原签名私钥。
 
 原目录没有 Git 元数据，本次建立本地 main，并先提交原始源码快照，随后提交恢复与开发结果。没有配置或推送远端。

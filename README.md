@@ -1,6 +1,6 @@
-# kgent
+# kegent
 
-Android 路线与跑步配置工具，应用 ID 与源码包名统一为 `com.haven.kgent`。
+Android 路线与跑步配置工具，应用 ID 与源码包名统一为 `com.haven.kegent`。
 
 ## 实时跑步
 
@@ -8,9 +8,9 @@ Android 路线与跑步配置工具，应用 ID 与源码包名统一为 `com.ha
 
 默认启用「自然配速」：超过 1 km 的跑步前段略快，在第一公里内平滑过渡，后段保持小幅连续变化。输入速度作为平均速度，运行时显示当前配速；关闭开关可恢复匀速。暂停不计入有效时长，调整速度不会重置路线进度。
 
-主题保留已安装 KmAo 的浅蓝色 `#DAF0FB`，支持深色模式、窄屏与横屏；页面切换和状态反馈使用原生 Android 动效，并遵循系统动画开关。
+主题保留已安装 KmAo 的浅蓝色 `#DAF0FB`，支持深色模式、窄屏与横屏；深色页面背景为 `#121212`。顶部提供无闪屏的昼夜切换按钮，页面切换和状态反馈使用原生 Android 动效，并遵循系统动画开关。
 
-在真机上使用实时定位前，需要授予位置权限并在开发者选项中选择 kgent 作为模拟定位应用。模拟定位是否被其他应用接收取决于其自身行为。
+在真机上使用实时定位前，需要授予位置权限并在开发者选项中选择 kegent 作为模拟定位应用。模拟定位是否被其他应用接收取决于其自身行为。
 
 ## 单条历史补跑
 
@@ -24,7 +24,7 @@ Android 路线与跑步配置工具，应用 ID 与源码包名统一为 `com.ha
 
 Keep 的「隐藏地图」或 Gotham 图层会显示纯色/深色背景与轨迹。打开记录的「全屏 → 图层」，**点击 Street 上方的地图缩略图**（不要只点下面的文字），再点确认即可显示真实底图。本次已在蓝叠实际切换、重启 Keep 后复核；地图样式由 Keep 管理。
 
-导入路线应为标准 WGS84/GPS KML。历史交接按 Keep 的腾讯定位链路转换为 GCJ-02；实时模拟定位和 GPX 继续使用 GPS 坐标，避免重复转换。已有上传记录的坐标不会被本次版本自动改写。kgent 中的路线轮廓是概览，地图底图在 Keep 中查看。
+导入路线应为标准 WGS84/GPS KML。路线预览会按 WGS84 的 Web Mercator 投影异步加载 OpenStreetMap 街区瓦片，并在应用缓存中复用；无网络时回退到不误导地理位置的街区风格底图。预览保留 OSM 署名，不承诺与 Keep 的腾讯图层样式或瓦片数据一致。历史交接按 Keep 的腾讯定位链路转换为 GCJ-02；实时模拟定位和 GPX 继续使用 GPS 坐标，避免重复转换。已有上传记录的坐标不会被本次版本自动改写。
 
 ## 编译和验证
 
@@ -37,7 +37,7 @@ Keep 的「隐藏地图」或 Gotham 图层会显示纯色/深色背景与轨迹
 ./gradlew :app:connectedDebugAndroidTest
 ```
 
-Windows 使用 `gradlew.bat`。应用显示名与交付安装包名分别为 `kgent` 和 `kgent.apk`。`exportDebugApk` 生成的 debug APK 位于 `app/build/outputs/apk/kgent/kgent.apk`；包名同为 `com.haven.kgent`，与旧安装包可并存。
+Windows 使用 `gradlew.bat`。应用显示名与交付安装包名分别为 `kegent` 和 `kegent.apk`。`exportDebugApk` 生成的 debug APK 位于 `app/build/outputs/apk/kegent/kegent.apk`；包名同为 `com.haven.kegent`，与旧安装包可并存。
 
 常规设备测试只运行内存 SQLite 兼容性测试等，不写入 Keep 数据。`KeepHandoffIntegrationTest` 默认跳过；只有显式参数和宿主网络隔离同时存在时才允许本地交接验证。不要在未隔离网络的环境启用该测试。
 

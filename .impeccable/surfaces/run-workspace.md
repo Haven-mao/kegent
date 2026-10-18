@@ -1,13 +1,13 @@
 ---
 version: 1
 slug: "run-workspace"
-primary_target: "app/src/main/java/com/haven/kgent/FakeGPSActivity.java"
-related_targets: ["app/src/main/java/com/haven/kgent/ui/RoutePreviewView.java", "app/src/main/java/com/haven/kgent/ui/Ui.java"]
+primary_target: "app/src/main/java/com/haven/kegent/FakeGPSActivity.java"
+related_targets: ["app/src/main/java/com/haven/kegent/ui/RoutePreviewView.java", "app/src/main/java/com/haven/kegent/ui/Ui.java"]
 ---
 
 # Running workspace
 
-Mode: Operate. Native Android. The user configures real-time virtual location or prepares one historical run. Preserve the installed blue identity, KML routes and existing controls. The user has renamed the application to kgent and the package to com.haven.kgent.
+Mode: Operate. Native Android. The user configures real-time virtual location or prepares one historical run. Preserve the installed blue identity, KML routes and existing controls. The user has renamed the application to kegent and the package to com.haven.kegent.
 
 ## Direction contract
 
@@ -29,6 +29,6 @@ User feedback: stronger interactive control contrast, start/end time selection d
 
 Keep the light-blue primary fill. Strengthen control outlines and disabled-state separation, and use the accent blue for native dialog actions. Use a native hour/minute/second picker and preserve saved minute-only settings. Offer natural/uniform pace in live and historical modes; historical totals remain tied to the requested duration and average pace.
 
-The reproduced dark background is Keep's selected Hide map layer. Switching its existing layer control to Street restores geographic tiles. KML GPS coordinates also require conversion to Keep's Tencent/GCJ-02 record coordinates. The kgent canvas is a route overview; it does not pretend to be a map or invent geographic imagery. Keep the map-layer recovery instructions available in Help.
+The reproduced dark background is Keep's selected Hide map layer. Switching its existing layer control to Street restores geographic tiles. KML GPS coordinates also require conversion to Keep's Tencent/GCJ-02 record coordinates. The kegent preview now uses WGS84 Web Mercator to load OpenStreetMap street tiles asynchronously with attribution and cache; if the device cannot reach the tile service, its block/park/water canvas remains visible as an explicit offline fallback. Keep's own Street layer remains authoritative for saved records.
 
 The working interaction target is the Street map thumbnail in Keep's layer sheet. Tapping the label alone is not a successful selection on the tested client. Historical handoff also writes `source=keep_app` and `source_page=keep_app` in `OutdoorActivity`, while SQLite keeps `sourceType=OFFLINE`; this preserves Keep's native source badge without claiming cloud acceptance.

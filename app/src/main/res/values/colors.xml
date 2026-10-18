@@ -16,4 +16,12 @@
     <color name="ui_disabled_fill">#E3EBF0</color>
     <color name="ui_disabled_text">#526774</color>
     <color name="ui_error">#A93236</color>
+    <color name="map_background">#EEF2EE</color>
+    <color name="map_block">#E5E9E4</color>
+    <color name="map_block_alt">#DEE5DF</color>
+    <color name="map_park">#D6E7D2</color>
+    <color name="map_water">#C7E1EC</color>
+    <color name="map_road">#FFFFFF</color>
+    <color name="map_road_minor">#D1D8D8</color>
+    <color name="map_label">#91A0A0</color>
 </resources>

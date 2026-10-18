@@ -1,5 +1,5 @@
 ---
-name: kgent
+name: kegent
 description: A native Android running workspace with the retained KmAo blue identity.
 colors:
   primary_brand: "#DAF0FB"
@@ -130,13 +130,13 @@ components:
     padding: "8dp 16dp"
 ---
 
-# Design System: kgent
+# Design System: kegent
 
 ## Overview
 
 **Creative North Star: "Route-first running workspace"**
 
-kgent is a compact native Android tool for configuring route playback and preparing one historical run. Its visual identity retains the installed KmAo light blue and original artwork, with ink-blue text, cool surfaces, and native Material controls. The app title is kgent; the package is `com.haven.kgent`.
+kegent is a compact native Android tool for configuring route playback and preparing one historical run. Its visual identity retains the installed KmAo light blue and original artwork, with ink-blue text, cool surfaces, and native Material controls. The app title is kegent; the package is `com.haven.kegent`.
 
 The interface gives route geometry, editable parameters, and current run state clear roles. Clear control boundaries and quiet tonal panels organize a practical workspace. Motion explains a state change or progress update. Light and dark themes share the same blue family, and text uses Android's scalable native typography.
 
@@ -209,6 +209,13 @@ Paired fields and secondary actions use equal layout weights with (6 dp) inner m
 
 The footer uses (20 dp) horizontal, (8 dp) top, and (12 dp) bottom padding. Its primary action expands to remaining width; run controls follow with small gaps. Footer buttons have (56 dp) layout height. Content scrolls above this persistent control area.
 
+### Current visual refinements
+
+- The top bar keeps `实时跑步 / 历史补跑` beside the title on wide screens and in the immediately following row on phones. `使用说明` sits directly before the 76 × 48 dp day/night control.
+- The original 36 dp artwork is clipped to a 10 dp rounded square without changing its pixels. `DayNightToggleView` is a native Canvas component that keeps the 76 × 42 dp capsule, three halos, two clouds, six four-point stars, three craters, 650 ms motion, and accessible switch label from the supplied day-night-toggle specification.
+- `ui_background` resolves to `#121212` in `values-night`; the theme transition handles `uiMode` in place so a theme change does not expose a black recreation frame.
+- `RoutePreviewView` projects KML WGS84 points with Web Mercator, loads OpenStreetMap tiles asynchronously with a seven-day cache and attribution, and keeps the block/park/water canvas as a deterministic offline fallback. The preview never claims that this fallback is geographic imagery, and Keep's own Street layer remains authoritative for saved records.
+
 **The Visible Run Rule.** Switching tabs must preserve the active run's status, distance/time, progress, and pause/resume/end controls. A blocked history action explains its state with “结束后补跑”.
 
 ## Elevation & Depth
@@ -275,7 +282,7 @@ The Android resource preparation task copies source resources into a generated d
 
 ### Do:
 
-- Do retain the existing blue brand pair, original artwork, and kgent identity.
+- Do retain the existing blue brand pair, original artwork, and kegent identity.
 - Do resolve all theme colors through Android resources and their night overrides.
 - Do use native Material controls, dp geometry, sp text, and system font scaling.
 - Do keep active-run status and controls available when switching modes.

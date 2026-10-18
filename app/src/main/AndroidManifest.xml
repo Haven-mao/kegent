@@ -1,11 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="com.haven.kgent">
+    package="com.haven.kegent">
 
     <!-- 【位置相关权限】 -->
     <!-- 获取精确位置信息（GPS） -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <!-- OSM route-preview tiles load asynchronously and fall back offline. -->
+    <uses-permission android:name="android.permission.INTERNET" />
     <!-- 获取粗略位置信息（网络、Wi-Fi） -->
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <!-- Android Q 开始允许前台和后台不同范围的位置访问 -->
@@ -45,7 +47,7 @@
         <!-- 【服务声明】 -->
         <!-- 用于模拟位置信息的服务 -->
         <service
-            android:name="com.haven.kgent.LocationMockService"
+            android:name="com.haven.kegent.LocationMockService"
             android:exported="false"
             android:foregroundServiceType="location" />
 
@@ -63,6 +65,7 @@
         <activity
             android:name=".FakeGPSActivity"
             android:exported="false"
+            android:configChanges="uiMode|screenSize|orientation"
             android:windowSoftInputMode="adjustResize" />
 
     </application>

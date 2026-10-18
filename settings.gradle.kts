@@ -19,5 +19,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "kgent"
+rootProject.name = "kegent"
 include(":app")

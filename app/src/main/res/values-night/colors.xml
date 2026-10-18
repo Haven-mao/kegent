@@ -1,14 +1,22 @@
 <resources>
-    <color name="ui_background">#111C24</color>
-    <color name="ui_surface">#192731</color>
-    <color name="ui_tonal">#243D4C</color>
-    <color name="ui_text">#E4EFF6</color>
-    <color name="ui_muted">#B3C8D5</color>
+    <color name="ui_background">#121212</color>
+    <color name="ui_surface">#1E1E1E</color>
+    <color name="ui_tonal">#242424</color>
+    <color name="ui_text">#F5F5F5</color>
+    <color name="ui_muted">#B8B8B8</color>
     <color name="ui_accent">#A0D4F0</color>
-    <color name="ui_outline">#405B6B</color>
+    <color name="ui_outline">#4A4A4A</color>
     <color name="ui_control_outline">#8BB8D0</color>
-    <color name="ui_on_accent">#132D3D</color>
-    <color name="ui_disabled_fill">#263640</color>
-    <color name="ui_disabled_text">#A3B6C2</color>
+    <color name="ui_on_accent">#121212</color>
+    <color name="ui_disabled_fill">#2B2B2B</color>
+    <color name="ui_disabled_text">#9A9A9A</color>
     <color name="ui_error">#FFB1B4</color>
+    <color name="map_background">#171A1C</color>
+    <color name="map_block">#1E2427</color>
+    <color name="map_block_alt">#23292C</color>
+    <color name="map_park">#23352D</color>
+    <color name="map_water">#1E3743</color>
+    <color name="map_road">#30383C</color>
+    <color name="map_road_minor">#272D30</color>
+    <color name="map_label">#7C8D92</color>
 </resources>

@@ -1,7 +1,7 @@
 {
   "schemaVersion": 2,
   "generatedAt": "2026-10-18T19:22:35Z",
-  "title": "Design System: kgent",
+  "title": "Design System: kegent",
   "extensions": {
     "colorMeta": {
       "on_primary_brand": {
@@ -225,7 +225,7 @@
     "native": {
       "platform": "android",
       "stack": "Java / Android Views / Material 3",
-      "applicationId": "com.haven.kgent",
+      "applicationId": "com.haven.kegent",
       "theme": "Theme.Material3.DayNight.NoActionBar",
       "units": {
         "geometry": "dp converted by Ui.dp with density and Math.round",
@@ -261,7 +261,7 @@
         "buttonAllCaps": false
       },
       "layout": {
-        "root": "Vertical LinearLayout: top bar, TabLayout, weighted ScrollView, footer outside the scroll area.",
+        "root": "Vertical LinearLayout: top bar with logo/title, mode tabs, help, and day/night toggle; weighted ScrollView; footer outside the scroll area.",
         "widePaneWeights": [
           0.9,
           1.1
@@ -275,7 +275,9 @@
         "footerButtonHeight": "56dp",
         "footerButtonGap": "{spacing.small}",
         "compactStatusMetricsGap": "10dp",
-        "logoSize": "36dp × 36dp"
+        "logoSize": "36dp × 36dp",
+        "logoCornerRadius": "10dp",
+        "themeToggle": "DayNightToggleView, 76dp visual capsule × 48dp touch area"
       },
       "componentDetails": {
         "button": {
@@ -322,7 +324,7 @@
           "dates": "Start and end open DatePickerDialog, followed by a MaterialAlertDialog with native hour/minute/second NumberPickers."
         },
         "route": {
-          "class": "com.haven.kgent.ui.RoutePreviewView",
+          "class": "com.haven.kegent.ui.RoutePreviewView",
           "geometry": "Actual selected KML route; centered with longitude corrected by cos(latitude).",
           "maximumInset": "28dp",
           "insetLimit": "16% of the smaller canvas dimension",
@@ -334,7 +336,7 @@
           "markerOuterRadius": "7dp",
           "markerInnerRadius": "4dp",
           "accessibility": "Route name, point count, and approximate length in the view content description.",
-          "mapContext": "Route geometry is an overview. Help points to Keep record details → Fullscreen → Layers → tap the Street thumbnail → confirm; tapping the text alone may not trigger the layer. Hide map shows a flat background; no map imagery is synthesized in kgent."
+          "mapContext": "RoutePreviewView projects WGS84 KML points with Web Mercator, loads OpenStreetMap tiles asynchronously with attribution and cache, and falls back to a deterministic block/park/water canvas when tiles are unavailable. Keep record details → Fullscreen → Layers → tap the Street thumbnail → confirm remains the authoritative saved-record map."
         },
         "historyReview": {
           "class": "LinearLayout with TextView",
@@ -394,19 +396,20 @@
         }
       },
       "sourceFiles": [
-        "app/src/main/java/com/haven/kgent/FakeGPSActivity.java",
-        "app/src/main/java/com/haven/kgent/ui/Ui.java",
-        "app/src/main/java/com/haven/kgent/ui/RoutePreviewView.java",
+        "app/src/main/java/com/haven/kegent/FakeGPSActivity.java",
+        "app/src/main/java/com/haven/kegent/ui/Ui.java",
+        "app/src/main/java/com/haven/kegent/ui/RoutePreviewView.java",
+        "app/src/main/java/com/haven/kegent/ui/DayNightToggleView.java",
         "app/src/main/res/values/colors.xml",
         "app/src/main/res/values-night/colors.xml",
         "app/src/main/res/values/themes.xml",
         "app/src/main/res/values-night/themes.xml",
         "app/src/main/res/values/strings.xml",
         "app/build.gradle.kts",
-        "app/src/main/java/com/haven/kgent/core/PaceProfile.java",
-        "app/src/main/java/com/haven/kgent/core/RunDateTime.java",
-        "app/src/main/java/com/haven/kgent/keep/KeepCoordinates.java",
-        "app/src/main/java/com/haven/kgent/keep/KeepRecordBuilder.java",
+        "app/src/main/java/com/haven/kegent/core/PaceProfile.java",
+        "app/src/main/java/com/haven/kegent/core/RunDateTime.java",
+        "app/src/main/java/com/haven/kegent/keep/KeepCoordinates.java",
+        "app/src/main/java/com/haven/kegent/keep/KeepRecordBuilder.java",
         "README.md"
       ],
       "reviewEvidence": {
@@ -502,7 +505,7 @@
   ],
   "narrative": {
     "northStar": "Route-first running workspace",
-    "overview": "kgent is a compact native Android tool for configuring route playback and preparing one historical run. Its visual identity retains the installed KmAo light blue and original artwork, with ink-blue text, cool surfaces, and native Material controls. The app title is kgent; the package is `com.haven.kgent`.\n\nThe interface gives route geometry, editable parameters, and current run state clear roles. Clear control boundaries and quiet tonal panels organize a practical workspace. Motion explains a state change or progress update. Light and dark themes share the same blue family, and text uses Android's scalable native typography.",
+    "overview": "kegent is a compact native Android tool for configuring route playback and preparing one historical run. Its visual identity retains the installed KmAo light blue and original artwork, with ink-blue text, cool surfaces, and native Material controls. The app title is kegent; the package is `com.haven.kegent`. The dark page ground is `#121212`; the day/night capsule follows the supplied native Canvas specification.\n\nThe interface gives route geometry, editable parameters, and current run state clear roles. Clear control boundaries and quiet tonal panels organize a practical workspace. Motion explains a state change or progress update. Light and dark themes share the same blue family, and text uses Android's scalable native typography.",
     "keyCharacteristics": [
       "Retained light-blue identity with cool neutral surfaces.",
       "Native Material 3 controls and Android dp/sp units.",
@@ -538,7 +541,7 @@
       }
     ],
     "dos": [
-      "Do retain the existing blue brand pair, original artwork, and kgent identity.",
+      "Do retain the existing blue brand pair, original artwork, and kegent identity.",
       "Do resolve all theme colors through Android resources and their night overrides.",
       "Do use native Material controls, dp geometry, sp text, and system font scaling.",
       "Do keep active-run status and controls available when switching modes.",
