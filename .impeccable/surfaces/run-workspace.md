@@ -22,3 +22,11 @@ FIRST VIEWPORT: Native top bar with two tabs. On landscape, route preview/status
 FORM: Precisely scoped existing-world redesign; no concept seed is needed. Native code-first build. Signature interaction: route progress and state changes animate with short easing, while the history preview updates calculated distance and route coverage without shifting the form. System Remove animations is honored.
 
 FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance
+
+## Refinement scope — 2026-10-18
+
+User feedback: stronger interactive control contrast, start/end time selection down to seconds, a natural pace curve with a faster first kilometer and steadier later pace, and real Keep map backgrounds for imported routes.
+
+Keep the light-blue primary fill. Strengthen control outlines and disabled-state separation, and use the accent blue for native dialog actions. Use a native hour/minute/second picker and preserve saved minute-only settings. Offer natural/uniform pace in live and historical modes; historical totals remain tied to the requested duration and average pace.
+
+The reproduced dark background is Keep's selected Hide map layer. Switching its existing layer control to Street restores geographic tiles. KML GPS coordinates also require conversion to Keep's Tencent/GCJ-02 record coordinates. The kgent canvas is a route overview; it does not pretend to be a map or invent geographic imagery. Keep the map-layer recovery instructions available in Help.

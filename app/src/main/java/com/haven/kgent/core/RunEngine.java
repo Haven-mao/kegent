@@ -35,17 +35,24 @@ public final class RunEngine {
     }
 
     private State state = State.READY;
-    private double distance, target, speed, elapsed;
+    private double distance, target, speed, elapsed, effort;
+    private PaceProfile profile;
     private long lastTick;
 
     public synchronized void start(double targetMeters, double metersPerSecond, long now) {
+        start(targetMeters, metersPerSecond, now, false, 0);
+    }
+
+    public synchronized void start(
+            double targetMeters, double metersPerSecond, long now, boolean natural, long seed) {
         requireSpeed(metersPerSecond);
         if (!Double.isFinite(targetMeters) || targetMeters < 1 || targetMeters > 200000)
             throw new IllegalArgumentException("目标距离应在 1 米至 200 公里之间");
         if (snapshot().active()) throw new IllegalStateException("请先结束当前运行");
-        distance = elapsed = 0;
+        distance = elapsed = effort = 0;
         target = targetMeters;
         speed = metersPerSecond;
+        profile = new PaceProfile(targetMeters, natural, seed);
         lastTick = now;
         state = State.RUNNING;
     }
@@ -53,8 +60,9 @@ public final class RunEngine {
     public synchronized Snapshot tick(long now) {
         if (state == State.RUNNING) {
             double delta = Math.max(0, now - lastTick);
-            double consumed = Math.min(delta, (target - distance) / speed * 1000);
-            distance = Math.min(target, distance + consumed * speed / 1000);
+            double consumed = Math.min(delta, (target - effort) / speed * 1000);
+            effort = Math.min(target, effort + consumed * speed / 1000);
+            distance = profile.distanceAt(effort);
             elapsed += consumed;
             if (distance >= target - 0.00001) state = State.FINISHED;
         }
@@ -90,7 +98,12 @@ public final class RunEngine {
     }
 
     public synchronized Snapshot snapshot() {
-        return new Snapshot(state, distance, target, speed, Math.round(elapsed));
+        return new Snapshot(
+                state,
+                distance,
+                target,
+                profile == null ? speed : speed * profile.speedFactorAt(distance),
+                Math.round(elapsed));
     }
 
     private static void requireSpeed(double speed) {

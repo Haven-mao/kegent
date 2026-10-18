@@ -6,5 +6,9 @@
     <color name="ui_muted">#B3C8D5</color>
     <color name="ui_accent">#A0D4F0</color>
     <color name="ui_outline">#405B6B</color>
+    <color name="ui_control_outline">#8BB8D0</color>
+    <color name="ui_on_accent">#132D3D</color>
+    <color name="ui_disabled_fill">#263640</color>
+    <color name="ui_disabled_text">#A3B6C2</color>
     <color name="ui_error">#FFB1B4</color>
 </resources>

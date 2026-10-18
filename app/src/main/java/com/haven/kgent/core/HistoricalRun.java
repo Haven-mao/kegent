@@ -10,6 +10,8 @@ public final class HistoricalRun {
     public final int paceSeconds, cadence;
     public final double distanceMeters, weightKg;
     public final String timezone;
+    public final boolean naturalPace;
+    private final PaceProfile profile;
 
     public HistoricalRun(
             RunRoute route,
@@ -20,10 +22,25 @@ public final class HistoricalRun {
             double weightKg,
             String timezone,
             long now) {
+        this(route, startTime, endTime, paceSeconds, cadence, weightKg, timezone, now, true);
+    }
+
+    public HistoricalRun(
+            RunRoute route,
+            long startTime,
+            long endTime,
+            int paceSeconds,
+            int cadence,
+            double weightKg,
+            String timezone,
+            long now,
+            boolean naturalPace) {
         if (route == null) throw new IllegalArgumentException("请先选择路线");
         if (startTime <= 0 || endTime <= startTime)
             throw new IllegalArgumentException("结束时间必须晚于开始时间");
         if (endTime > now) throw new IllegalArgumentException("请选择已经结束的历史时间段");
+        if (startTime % 1000 != 0 || endTime % 1000 != 0)
+            throw new IllegalArgumentException("起止时间必须精确到整秒");
         long duration = (endTime - startTime) / 1000;
         if (duration <= 20 || duration > 12 * 3600)
             throw new IllegalArgumentException("单次时长应大于 20 秒且不超过 12 小时");
@@ -46,6 +63,15 @@ public final class HistoricalRun {
         this.distanceMeters = distance;
         this.weightKg = weightKg;
         this.timezone = timezone;
+        this.naturalPace = naturalPace;
+        this.profile =
+                new PaceProfile(
+                        distance,
+                        naturalPace,
+                        startTime
+                                ^ Long.rotateLeft(endTime, 19)
+                                ^ Double.doubleToLongBits(route.get(0).latitude)
+                                ^ Double.doubleToLongBits(route.get(0).longitude));
     }
 
     public static int parsePace(String value) {
@@ -77,6 +103,22 @@ public final class HistoricalRun {
 
     public double speed() {
         return 1000.0 / paceSeconds;
+    }
+
+    public double distanceAtSecond(double second) {
+        return profile.distanceAt(Math.max(0, Math.min(durationSeconds, second)) * speed());
+    }
+
+    public double speedAtSecond(double second) {
+        return speed() * profile.speedFactorAt(distanceAtSecond(second));
+    }
+
+    public double maximumSpeed() {
+        return speed() * profile.maxSpeedFactor();
+    }
+
+    public double secondsAtDistance(double meters) {
+        return profile.effortAt(meters) / speed();
     }
 
     public int totalSteps() {

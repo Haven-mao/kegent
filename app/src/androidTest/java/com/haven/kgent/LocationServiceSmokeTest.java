@@ -35,6 +35,7 @@ public class LocationServiceSmokeTest {
                     new Intent(c, LocationMockService.class)
                             .setAction(LocationMockService.START)
                             .putExtra("speed", 3.0)
+                            .putExtra("natural_pace", false)
                             .putExtra("repeats", 15)
                             .putExtra("route_name", "DUTPJ");
             ContextCompat.startForegroundService(c, start);

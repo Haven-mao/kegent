@@ -67,17 +67,28 @@ public final class Ui {
         b.setInsetTop(dp(c, 3));
         b.setInsetBottom(dp(c, 3));
         b.setTextColor(
-                ColorStateList.valueOf(
-                        color(c, primary ? R.color.on_primary_brand : R.color.ui_accent)));
-        if (primary)
-            b.setBackgroundTintList(
-                    new ColorStateList(
-                            new int[][] {new int[] {-android.R.attr.state_enabled}, new int[] {}},
-                            new int[] {
-                                color(c, R.color.ui_outline), color(c, R.color.primary_brand)
-                            }));
-        b.setStrokeColor(ColorStateList.valueOf(color(c, R.color.ui_outline)));
+                controlColors(
+                        c,
+                        R.color.ui_disabled_text,
+                        primary ? R.color.on_primary_brand : R.color.ui_accent));
+        b.setBackgroundTintList(
+                controlColors(
+                        c,
+                        R.color.ui_disabled_fill,
+                        primary ? R.color.primary_brand : R.color.ui_tonal));
+        b.setStrokeWidth(dp(c, primary ? 2 : 1.5f));
+        b.setStrokeColor(
+                controlColors(
+                        c,
+                        R.color.ui_outline,
+                        primary ? R.color.ui_accent : R.color.ui_control_outline));
         return b;
+    }
+
+    private static ColorStateList controlColors(Context c, int disabled, int enabled) {
+        return new ColorStateList(
+                new int[][] {new int[] {-android.R.attr.state_enabled}, new int[] {}},
+                new int[] {color(c, disabled), color(c, enabled)});
     }
 
     public static MaterialCardView card(Context c, View content) {

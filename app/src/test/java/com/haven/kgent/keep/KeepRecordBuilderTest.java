@@ -67,4 +67,41 @@ public class KeepRecordBuilderTest {
     public void sqlQuotesDoNotAllowStringBreakout() {
         assertEquals("'a''b'", KeepRecordBuilder.quote("a'b"));
     }
+
+    @Test
+    public void secondsVariableSpeedAndMapCoordinatesAreConsistent() throws Exception {
+        HistoricalRun template = run();
+        HistoricalRun run =
+                new HistoricalRun(
+                        template.route,
+                        1700000037000L,
+                        1700001804000L,
+                        330,
+                        170,
+                        65,
+                        "Asia/Shanghai",
+                        1800000000000L);
+        JSONObject data = KeepRecordBuilder.build(run, "test-user");
+        JSONArray points = data.getJSONArray("geoPoints");
+        JSONObject last = points.getJSONObject(points.length() - 1);
+        assertEquals(run.endTime, last.getLong("unixTimestamp"));
+        assertEquals(1767, last.getInt("currentTotalDuration"));
+        assertEquals(run.distanceMeters, last.getDouble("currentTotalDistance"), 1e-7);
+        assertTrue(data.getDouble("maxSpeed") > data.getDouble("averageSpeed"));
+        assertNotEquals(
+                points.getJSONObject(0).getDouble("speed"),
+                points.getJSONObject(1000).getDouble("speed"),
+                0.01);
+        for (int i = 1; i < points.length(); i++) {
+            JSONObject a = points.getJSONObject(i - 1), b = points.getJSONObject(i);
+            double distance =
+                    b.getDouble("currentTotalDistance") - a.getDouble("currentTotalDistance");
+            double dt = (b.getLong("unixTimestamp") - a.getLong("unixTimestamp")) / 1000.0;
+            assertEquals(b.getDouble("speed") / 3.6, distance / dt, 0.003);
+            assertEquals(Math.round(3600 / b.getDouble("speed")), b.getLong("currentPace"));
+        }
+        RunRoute.Point mapped = KeepCoordinates.fromGps(run.route.at(0));
+        assertEquals(mapped.latitude, points.getJSONObject(0).getDouble("latitude"), 1e-9);
+        assertEquals(mapped.longitude, points.getJSONObject(0).getDouble("longitude"), 1e-9);
+    }
 }

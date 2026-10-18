@@ -11,6 +11,10 @@ colors:
   ui_muted: "#526774"
   ui_accent: "#235E80"
   ui_outline: "#C9D8E2"
+  ui_control_outline: "#50768C"
+  ui_on_accent: "#FFFFFF"
+  ui_disabled_fill: "#E3EBF0"
+  ui_disabled_text: "#526774"
   ui_error: "#A93236"
   ui_background_night: "#111C24"
   ui_surface_night: "#192731"
@@ -19,6 +23,10 @@ colors:
   ui_muted_night: "#B3C8D5"
   ui_accent_night: "#A0D4F0"
   ui_outline_night: "#405B6B"
+  ui_control_outline_night: "#8BB8D0"
+  ui_on_accent_night: "#132D3D"
+  ui_disabled_fill_night: "#263640"
+  ui_disabled_text_night: "#A3B6C2"
   ui_error_night: "#FFB1B4"
 typography:
   app-title:
@@ -80,12 +88,18 @@ components:
     typography: "{typography.button}"
     rounded: "{rounded.button}"
   button-primary-disabled:
-    backgroundColor: "{colors.ui_outline}"
-    textColor: "{colors.on_primary_brand}"
+    backgroundColor: "{colors.ui_disabled_fill}"
+    textColor: "{colors.ui_disabled_text}"
     typography: "{typography.button}"
     rounded: "{rounded.button}"
   button-secondary:
+    backgroundColor: "{colors.ui_tonal}"
     textColor: "{colors.ui_accent}"
+    typography: "{typography.button}"
+    rounded: "{rounded.button}"
+  button-secondary-disabled:
+    backgroundColor: "{colors.ui_disabled_fill}"
+    textColor: "{colors.ui_disabled_text}"
     typography: "{typography.button}"
     rounded: "{rounded.button}"
   field-outline:
@@ -110,6 +124,10 @@ components:
     textColor: "{colors.ui_text}"
     typography: "{typography.body}"
     padding: "14dp"
+  pace-switch:
+    textColor: "{colors.ui_text}"
+  time-picker:
+    padding: "8dp 16dp"
 ---
 
 # Design System: kgent
@@ -120,7 +138,7 @@ components:
 
 kgent is a compact native Android tool for configuring route playback and preparing one historical run. Its visual identity retains the installed KmAo light blue and original artwork, with ink-blue text, cool surfaces, and native Material controls. The app title is kgent; the package is `com.haven.kgent`.
 
-The interface gives route geometry, editable parameters, and current run state clear roles. Quiet outlines and tonal panels organize a practical workspace. Motion explains a state change or progress update. Light and dark themes share the same blue family, and text uses Android's scalable native typography.
+The interface gives route geometry, editable parameters, and current run state clear roles. Clear control boundaries and quiet tonal panels organize a practical workspace. Motion explains a state change or progress update. Light and dark themes share the same blue family, and text uses Android's scalable native typography.
 
 **Key Characteristics:**
 
@@ -138,18 +156,21 @@ The palette combines a pale blue primary action with darker blue interaction mar
 
 ### Primary
 
-- **Retained sky blue** (`primary_brand`): filled primary actions and the theme's `colorPrimary`. It remains the same in both themes.
+- **Retained sky blue** (`primary_brand`): the custom filled primary actions in `Ui.button`. It remains exactly the frontmatter value in both themes.
 - **Ink on sky** (`on_primary_brand`): text on the primary fill, also unchanged in night mode.
-- **Route blue** (`ui_accent`): route strokes, selected tabs, outlined action text, and focused field accents. Its night override is a lighter blue. Material maps this resource to `colorSecondary`; it is part of the same visual blue family.
+- **Route blue** (`ui_accent`): route strokes, selected tabs, outlined action text, focused fields, and native dialog/control accents. Material maps this resource to `colorPrimary`, `colorSecondary`, and `android:colorAccent`; its night override is a lighter blue.
+- **On accent** (`ui_on_accent`): the native theme's `colorOnPrimary` and `colorOnSecondary`, with a matching night override. The custom pale-blue primary button continues to use the separate brand pair.
 
 ### Neutral
 
 - **Cool ground** (`ui_background`): screen, tabs, system bars, and window background.
 - **Paper surface** (`ui_surface`): workspace cards, footer, and the route marker's outer disk.
-- **Tonal blue surface** (`ui_tonal`): route canvas, history review inset, and progress track.
+- **Tonal blue surface** (`ui_tonal`): enabled secondary button fill, route canvas, history review inset, and progress track.
 - **Primary ink** (`ui_text`): titles, status, field values, and body copy.
 - **Muted slate** (`ui_muted`): supporting copy, route details, inactive tabs, and default field hints.
-- **Soft outline** (`ui_outline`): card and button borders, uncompleted route, and disabled primary fill.
+- **Soft outline** (`ui_outline`): card borders, disabled button borders, the uncompleted route, and the theme's outline role.
+- **Control outline** (`ui_control_outline`): the stronger border on enabled secondary buttons. Enabled primary buttons use the accent border.
+- **Disabled fill / disabled text** (`ui_disabled_fill`, `ui_disabled_text`): dedicated background and foreground roles shared by disabled primary and secondary buttons.
 
 ### Feedback
 
@@ -157,7 +178,7 @@ The palette combines a pale blue primary action with darker blue interaction mar
 
 **The Blue Continuity Rule.** Use the existing blue and neutral resource roles in both themes. Do not introduce a green UI palette. The original artwork's grass pixels belong to the retained image, not to the control palette.
 
-**The Resource Pair Rule.** Resolve colors through Android resources. Keep the shared brand pair stable and use the corresponding night overrides for surfaces, text, outlines, accents, and errors.
+**The Resource Pair Rule.** Resolve colors through Android resources. Keep the shared brand pair stable and use the corresponding night overrides for surfaces, text, control states, accents, and errors.
 
 ## Typography
 
@@ -208,7 +229,7 @@ The history review is a rectangular tonal inset created with a plain background 
 
 Clear text actions use `MaterialButton`. `Ui.button` chooses native filled or outlined styles, applies the button radius, sets a minimum height of (48 dp), and uses (3 dp) top/bottom insets. It removes the minimum width so context-sensitive secondary controls fit the footer. Horizontal padding and press/focus effects remain Material-owned; no browser hover treatment is defined.
 
-The filled primary uses the brand pair. Its explicitly disabled background uses `ui_outline`; its foreground stays on-brand. Outlined actions use accent text and the outline resource. The main action changes between start, apply speed, history preview, Keep handoff, busy, and blocked states according to actual state. Native enabled/disabled state must remain functional, not only visual.
+The filled primary uses the brand pair and an accent stroke (2 dp). Secondary actions use tonal fill, accent text, and the stronger control outline (1.5 dp). Both variants use the dedicated disabled fill/text pair and soft outline when disabled, through a `ColorStateList` keyed to Android's enabled state. The main action changes between start, apply speed, history preview, Keep handoff, busy, and blocked states according to actual state. Native enabled/disabled state must remain functional, not only visual.
 
 ### Cards / Containers
 
@@ -216,7 +237,15 @@ The filled primary uses the brand pair. Its explicitly disabled background uses 
 
 ### Inputs / Fields
 
-`Ui.field` uses outlined `TextInputLayout` with `TextInputEditText`, the field radius, muted default hints, accent focused hints/stroke, and primary text. Values are single-line, select all on focus, and have a minimum height of (56 dp). Field errors use the native error slot; editing clears the field's current error. Start/end fields open native date and time pickers instead of the text keyboard. Preserve labels with units and existing input types.
+`Ui.field` uses outlined `TextInputLayout` with `TextInputEditText`, the field radius, muted default hints, accent focused hints/stroke, and primary text. Values are single-line, select all on focus, and have a minimum height of (56 dp). Field errors use the native error slot; editing clears the field's current error. Preserve labels with units and existing input types.
+
+Start/end fields first open `DatePickerDialog`, then a `MaterialAlertDialog` with three equal-width native `NumberPicker` columns labeled 时 / 分 / 秒. Each picker is (148 dp) high, displays two digits, and wraps within its valid range; labels use medium (14 sp) text. The row has (16 dp) horizontal and (8 dp) vertical padding. Dialog actions inherit the accent theme roles. Confirming writes `uuuu-MM-dd HH:mm:ss`; `RunDateTime` also accepts saved minute-only values and displays their seconds as `00`. Picker widgets retain native typography and interaction behavior.
+
+### Natural Pace
+
+Both forms expose a native `MaterialSwitch` labeled “自然配速”, with (14 sp) text and a minimum height of (48 dp). Its checked state is restored independently for each mode and defaults to enabled; switching it off selects uniform pace. The live switch is locked while a run is active or work is busy, and the live form displays current pace and speed during the run. Changing the history switch invalidates the prepared review.
+
+The supporting copy explains a slightly faster opening for runs longer than 1 km, settling through the first kilometer into small, smooth changes. Historical duration, distance, and average pace remain consistent with the requested inputs. `PaceProfile` and the README own the algorithm explanation; its coefficients are not visual design tokens. Switch track/thumb styling remains native Material behavior.
 
 ### Navigation
 
@@ -225,6 +254,8 @@ The native `TabLayout` contains “实时跑步” and “历史补跑”. The n
 ### Route Preview and Progress
 
 `RoutePreviewView` draws the selected KML route geometry on a tonal canvas; it does not show map tiles or invented roads. It centers the geometry with a maximum inset of (28 dp), limited to (16%) of the smaller canvas dimension. The full route uses the outline color, and traveled geometry uses the accent, with a (3 dp) stroke. At zero distance the full route is accent-colored. Its accessible description names the route, point count, and approximate length.
+
+The canvas remains a route overview. Help directs users to Keep record details → Fullscreen → Layers → Street for geographic tiles; Hide map shows a flat background. New history handoffs adapt standard GPS/WGS84 KML coordinates to Keep's GCJ-02 chain, while GPX retains GPS coordinates. Existing cloud records are not rewritten, and alignment of a newly converted cloud record has not been independently verified.
 
 Visible live progress interpolates from the current displayed distance over (220 ms) with native `DecelerateInterpolator(2)`. A new update cancels the previous interpolation, and route replacement or detachment cancels it too. History previews set distance immediately. `LinearProgressIndicator` uses accent fill, tonal track, and native progress animation when system animators are enabled; its animation duration is not overridden by the app.
 
@@ -262,4 +293,4 @@ The Android resource preparation task copies source resources into a generated d
 - Don't label a prepared or locally handed-off record as verified cloud success.
 - Don't treat provenance JSON sidecars as Android drawable or mipmap resources.
 
-Source authority: `FakeGPSActivity.java`, `ui/Ui.java`, `ui/RoutePreviewView.java`, both color/theme resource configurations, `PRODUCT.md`, the running-workspace surface contract, and the asset provenance manifest. The existing finish verdict records “ship” for the two reviewed run-state/motion fixes. That verdict does not certify Keep cloud acceptance or replace APK build/install validation. No material visual drift was found in the source and sampled existing tablet, phone-running, and dark-large-text captures; inherited Material defaults are intentionally left unexpanded.
+Source authority: `FakeGPSActivity.java`, `ui/Ui.java`, `ui/RoutePreviewView.java`, `core/PaceProfile.java`, `core/RunDateTime.java`, the Keep coordinate adapter, both color/theme resource configurations, `PRODUCT.md`, the running-workspace surface contract, README, and the asset provenance manifest. The refinement finish review at `.impeccable/review/refinements/finish-review.md` records “ship”, no material fixes, and 14 required native captures. This documentation pass sampled the provided tablet live and dark phone seconds-picker captures without device operations. The supplied asset scan reports 11 rasters and 0 missing; assets remain unchanged. No material visual mismatch was found in the sampled source and captures. The review does not establish new cloud-record alignment or cloud acceptance; inherited Material defaults remain unexpanded.

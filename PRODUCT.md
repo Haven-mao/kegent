@@ -22,6 +22,8 @@ Configure a route, control real-time playback, and prepare one historical runnin
 
 - Preserve the installed KmAo blue palette and logo; use the requested kgent name and com.haven.kgent package, existing KML route workflow, pause/resume/stop, speed adjustment, and the restored DUTPJ 400 m route.
 - Historical work is one record at a time, with a past start/end time, route, and pace. Confirmed by the user on 2026-10-18.
+- Start/end inputs support seconds and migrate prior minute-only settings. Natural pace starts faster for runs over 1 km, settles after 1 km, and preserves historical duration, distance and average pace; uniform mode remains available.
+- Standard KML/GPX coordinates are GPS/WGS84. Keep handoff adapts coordinates to its Tencent/GCJ-02 location chain. Keep's own map layer must be visible (for example Street) to display geographic tiles.
 - Distinguish local preparation, delivery to Keep, and server confirmation. Do not report unverified cloud success.
 - Validate parameters, retain user input, and preserve data through recoverable errors.
 - Changes are committed locally on main; no remote push is requested.

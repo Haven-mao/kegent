@@ -11,5 +11,9 @@
     <color name="ui_muted">#526774</color>
     <color name="ui_accent">#235E80</color>
     <color name="ui_outline">#C9D8E2</color>
+    <color name="ui_control_outline">#50768C</color>
+    <color name="ui_on_accent">#FFFFFF</color>
+    <color name="ui_disabled_fill">#E3EBF0</color>
+    <color name="ui_disabled_text">#526774</color>
     <color name="ui_error">#A93236</color>
 </resources>

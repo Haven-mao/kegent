@@ -109,7 +109,11 @@ public class LocationMockService extends Service {
                     throw new IllegalArgumentException("更新间隔应在 0.1 至 10 秒之间");
                 setupProviders();
                 engine.start(
-                        activeRoute.lengthMeters * repeats, speed, SystemClock.elapsedRealtime());
+                        activeRoute.lengthMeters * repeats,
+                        speed,
+                        SystemClock.elapsedRealtime(),
+                        intent.getBooleanExtra("natural_pace", true),
+                        System.currentTimeMillis());
                 wakeLock =
                         ((PowerManager) getSystemService(POWER_SERVICE))
                                 .newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "kgent:route");

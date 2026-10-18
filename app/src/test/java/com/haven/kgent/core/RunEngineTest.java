@@ -42,4 +42,22 @@ public class RunEngineTest {
         e.start(1000, 3, 0);
         e.start(1000, 3, 100);
     }
+
+    @Test
+    public void naturalRunHonorsPauseSpeedChangesAndFinish() {
+        RunEngine e = new RunEngine();
+        e.start(5000, 3, 1000, true, 42);
+        e.pause(101000);
+        double firstDistance = e.snapshot().distance;
+        assertTrue(firstDistance > 310);
+        e.tick(151000);
+        assertEquals(firstDistance, e.snapshot().distance, 0);
+        e.resume(201000);
+        e.updateSpeed(4, 201000);
+        assertEquals(firstDistance, e.snapshot().distance, 0);
+        e.tick(2001000);
+        assertEquals(RunEngine.State.FINISHED, e.snapshot().state);
+        assertEquals(5000, e.snapshot().distance, 0);
+        assertEquals(1275000, e.snapshot().elapsedMillis);
+    }
 }

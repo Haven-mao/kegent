@@ -28,7 +28,7 @@ public final class KeepRecordBuilder {
                 .put("distance", run.distanceMeters);
         data.put("averagePace", run.paceSeconds)
                 .put("averageSpeed", run.speed() * 3.6)
-                .put("maxSpeed", run.speed() * 3.6);
+                .put("maxSpeed", run.maximumSpeed() * 3.6);
         data.put("averageStepFrequency", run.cadence)
                 .put("averageStepLength", run.distanceMeters / run.totalSteps());
         data.put("totalSteps", run.totalSteps()).put("calorie", run.calories());
@@ -77,8 +77,8 @@ public final class KeepRecordBuilder {
         int interval = run.sampleIntervalSeconds();
         for (long second = 0; ; second = Math.min(run.durationSeconds, second + interval)) {
             double fraction = second / (double) run.durationSeconds,
-                    distance = run.distanceMeters * fraction;
-            RunRoute.Point point = run.route.at(distance);
+                    distance = run.distanceAtSecond(second);
+            RunRoute.Point point = KeepCoordinates.fromGps(run.route.at(distance));
             JSONObject p = new JSONObject();
             p.put("latitude", point.latitude)
                     .put("longitude", point.longitude)
@@ -88,15 +88,18 @@ public final class KeepRecordBuilder {
                     .put("altitude", 0)
                     .put("bearing", run.route.bearingAt(distance))
                     .put("locationType", 1);
-            p.put("speed", run.speed() * 3.6)
+            double pointSpeed = run.speedAtSecond(second);
+            p.put("speed", pointSpeed * 3.6)
                     .put("processLabel", 0)
                     .put("flags", new JSONArray())
                     .put("isPause", false);
-            p.put("currentPace", run.paceSeconds)
+            p.put("currentPace", Math.round(1000 / pointSpeed))
                     .put("currentTotalDistance", distance)
                     .put("currentTotalDuration", second);
             p.put("currentTotalSteps", Math.round(run.totalSteps() * fraction))
-                    .put("currentTotalCalories", Math.round(run.calories() * fraction));
+                    .put(
+                            "currentTotalCalories",
+                            Math.round(run.calories() * distance / run.distanceMeters));
             p.put("heartRate", 0).put("pressure", 0).put("crossKmMark", 0);
             points.put(p);
             if (second == run.durationSeconds) break;

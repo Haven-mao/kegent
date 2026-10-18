@@ -3,7 +3,6 @@ package com.haven.kgent;
 import android.Manifest;
 import android.animation.ValueAnimator;
 import android.app.DatePickerDialog;
-import android.app.TimePickerDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -18,6 +17,7 @@ import android.view.Gravity;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.NumberPicker;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
@@ -28,11 +28,13 @@ import androidx.core.content.ContextCompat;
 
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.android.material.materialswitch.MaterialSwitch;
 import com.google.android.material.progressindicator.LinearProgressIndicator;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.textfield.TextInputLayout;
 import com.haven.kgent.core.HistoricalRun;
+import com.haven.kgent.core.RunDateTime;
 import com.haven.kgent.core.RunEngine;
 import com.haven.kgent.core.RunRoute;
 import com.haven.kgent.keep.KeepBridge;
@@ -48,14 +50,11 @@ import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class FakeGPSActivity extends AppCompatActivity {
-    private static final DateTimeFormatter DATE =
-            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm", Locale.ROOT);
     private final ExecutorService worker = Executors.newSingleThreadExecutor();
     private final Handler handler = new Handler();
     private LinearLayout root, liveForm, historyForm, review, compactStatus;
@@ -69,6 +68,7 @@ public class FakeGPSActivity extends AppCompatActivity {
             reviewText,
             error;
     private MaterialButton primary, toggle, stop, browse, reset, connect, export;
+    private MaterialSwitch liveNatural, historyNatural;
     private RoutePreviewView routeView;
     private LinearProgressIndicator progress;
     private TextInputLayout speed,
@@ -317,7 +317,7 @@ public class FakeGPSActivity extends AppCompatActivity {
         Ui.add(form, Ui.text(this, "运行配置", 20, true), 0);
         Ui.add(form, Ui.note(this, "运行中可调整速度，切换页面后继续运行。"), 6);
         int decimal = InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL;
-        speed = field("速度 · m/s", "speed", "3.00", decimal);
+        speed = field("平均速度 · m/s", "speed", "3.00", decimal);
         speed.getEditText().setId(R.id.live_speed);
         Ui.add(form, speed, 20);
         MaterialButton slower = Ui.button(this, "− 0.1 m/s", false),
@@ -327,6 +327,9 @@ public class FakeGPSActivity extends AppCompatActivity {
         Ui.pair(form, slower, faster, 4);
         paceHint = Ui.note(this, "");
         Ui.add(form, paceHint, 4);
+        liveNatural = naturalPaceSwitch("live_natural");
+        Ui.add(form, liveNatural, 12);
+        Ui.add(form, Ui.note(this, "前 1 km 略快，之后平稳小幅变化；关闭后匀速运行。"), 2);
         repeats = field("路线次数", "repeats", "15", InputType.TYPE_CLASS_NUMBER);
         interval = field("更新间隔 · 秒", "interval", "0.3", decimal);
         Ui.pair(form, repeats, interval, 16);
@@ -354,14 +357,14 @@ public class FakeGPSActivity extends AppCompatActivity {
                 field(
                         "开始时间",
                         "history_start",
-                        DATE.format(yesterday),
+                        RunDateTime.format(yesterday),
                         InputType.TYPE_CLASS_DATETIME);
         hStart.getEditText().setId(R.id.history_start);
         hEnd =
                 field(
                         "结束时间",
                         "history_end",
-                        DATE.format(yesterday.plusMinutes(30)),
+                        RunDateTime.format(yesterday.plusMinutes(30)),
                         InputType.TYPE_CLASS_DATETIME);
         hEnd.getEditText().setId(R.id.history_end);
         datePicker(hStart);
@@ -377,6 +380,10 @@ public class FakeGPSActivity extends AppCompatActivity {
                         InputType.TYPE_CLASS_DATETIME | InputType.TYPE_DATETIME_VARIATION_TIME);
         hPace.getEditText().setId(R.id.history_pace);
         Ui.add(form, hPace, 16);
+        historyNatural = naturalPaceSwitch("history_natural");
+        historyNatural.setOnCheckedChangeListener((button, checked) -> invalidateHistory());
+        Ui.add(form, historyNatural, 12);
+        Ui.add(form, Ui.note(this, "前 1 km 略快，之后平稳；总时长、距离和平均配速保持一致。"), 2);
         hCadence = field("步频 · 步/分钟", "history_cadence", "170", InputType.TYPE_CLASS_NUMBER);
         hWeight =
                 field(
@@ -405,6 +412,16 @@ public class FakeGPSActivity extends AppCompatActivity {
         for (TextInputLayout f : new TextInputLayout[] {hStart, hEnd, hPace, hCadence, hWeight})
             watch(f, this::invalidateHistory);
         return form;
+    }
+
+    private MaterialSwitch naturalPaceSwitch(String key) {
+        MaterialSwitch control = new MaterialSwitch(this);
+        control.setText("自然配速");
+        control.setTextSize(14);
+        control.setTextColor(Ui.color(this, R.color.ui_text));
+        control.setMinHeight(dp(48));
+        control.setChecked(prefs.getBoolean(key, true));
+        return control;
     }
 
     private void setMode(boolean history) {
@@ -438,6 +455,11 @@ public class FakeGPSActivity extends AppCompatActivity {
     }
 
     private void datePicker(TextInputLayout f) {
+        try {
+            f.getEditText().setText(RunDateTime.format(RunDateTime.parse(Ui.value(f))));
+        } catch (IllegalArgumentException ignored) {
+            // Keep invalid user input visible so validation can explain the recovery.
+        }
         f.getEditText().setFocusable(false);
         f.getEditText().setClickable(true);
         f.getEditText()
@@ -445,7 +467,7 @@ public class FakeGPSActivity extends AppCompatActivity {
                         v -> {
                             LocalDateTime current;
                             try {
-                                current = LocalDateTime.parse(Ui.value(f), DATE);
+                                current = RunDateTime.parse(Ui.value(f));
                             } catch (Exception e) {
                                 current = LocalDateTime.now().minusDays(1);
                             }
@@ -454,31 +476,62 @@ public class FakeGPSActivity extends AppCompatActivity {
                                     new DatePickerDialog(
                                             this,
                                             (view, y, m, d) ->
-                                                    new TimePickerDialog(
-                                                                    this,
-                                                                    (picker, h, min) ->
-                                                                            f.getEditText()
-                                                                                    .setText(
-                                                                                            DATE
-                                                                                                    .format(
-                                                                                                            LocalDateTime
-                                                                                                                    .of(
-                                                                                                                            y,
-                                                                                                                            m
-                                                                                                                                    + 1,
-                                                                                                                            d,
-                                                                                                                            h,
-                                                                                                                            min))),
-                                                                    initial.getHour(),
-                                                                    initial.getMinute(),
-                                                                    true)
-                                                            .show(),
+                                                    selectTime(
+                                                            f,
+                                                            initial.withYear(y)
+                                                                    .withDayOfMonth(1)
+                                                                    .withMonth(m + 1)
+                                                                    .withDayOfMonth(d)),
                                             initial.getYear(),
                                             initial.getMonthValue() - 1,
                                             initial.getDayOfMonth());
                             dialog.getDatePicker().setMaxDate(System.currentTimeMillis());
                             dialog.show();
                         });
+    }
+
+    private void selectTime(TextInputLayout field, LocalDateTime initial) {
+        LinearLayout row = new LinearLayout(this);
+        row.setPadding(dp(16), dp(8), dp(16), dp(8));
+        NumberPicker hours = timePart(row, "时", 23, initial.getHour());
+        NumberPicker minutes = timePart(row, "分", 59, initial.getMinute());
+        NumberPicker seconds = timePart(row, "秒", 59, initial.getSecond());
+        new MaterialAlertDialogBuilder(this)
+                .setTitle(field.getHint())
+                .setView(row)
+                .setNegativeButton("取消", null)
+                .setPositiveButton(
+                        "确定",
+                        (dialog, which) -> {
+                            hours.clearFocus();
+                            minutes.clearFocus();
+                            seconds.clearFocus();
+                            field.getEditText()
+                                    .setText(
+                                            RunDateTime.format(
+                                                    initial.withHour(hours.getValue())
+                                                            .withMinute(minutes.getValue())
+                                                            .withSecond(seconds.getValue())
+                                                            .withNano(0)));
+                        })
+                .show();
+    }
+
+    private NumberPicker timePart(LinearLayout row, String label, int maximum, int value) {
+        LinearLayout column = Ui.column(this);
+        TextView title = Ui.text(this, label, 14, true);
+        title.setGravity(Gravity.CENTER);
+        column.addView(title, new LinearLayout.LayoutParams(-1, -2));
+        NumberPicker picker = new NumberPicker(this);
+        picker.setMinValue(0);
+        picker.setMaxValue(maximum);
+        picker.setFormatter(number -> String.format(Locale.ROOT, "%02d", number));
+        picker.setValue(value);
+        picker.setContentDescription(label);
+        picker.setWrapSelectorWheel(true);
+        column.addView(picker, new LinearLayout.LayoutParams(-1, dp(148)));
+        row.addView(column, new LinearLayout.LayoutParams(0, -2, 1));
+        return picker;
     }
 
     private void loadRoute() {
@@ -610,6 +663,7 @@ public class FakeGPSActivity extends AppCompatActivity {
                     new Intent(this, LocationMockService.class)
                             .setAction(LocationMockService.START)
                             .putExtra("speed", velocity)
+                            .putExtra("natural_pace", liveNatural.isChecked())
                             .putExtra("repeats", count)
                             .putExtra("interval", (long) (number(interval, 0.1, 10) * 1000))
                             .putExtra("altitude", number(altitude, -500, 10000))
@@ -655,8 +709,12 @@ public class FakeGPSActivity extends AppCompatActivity {
     }
 
     private void updatePace() {
-        if (paceHint == null) return;
         renderSignature = null;
+        renderPace();
+    }
+
+    private void renderPace() {
+        if (paceHint == null) return;
         try {
             double v = Double.parseDouble(Ui.value(speed));
             int count = Integer.parseInt(Ui.value(repeats));
@@ -697,6 +755,17 @@ public class FakeGPSActivity extends AppCompatActivity {
         if (signature.equals(renderSignature)) return;
         renderSignature = signature;
         boolean active = s.active();
+        liveNatural.setEnabled(!active && !busy);
+        if (active) {
+            paceHint.setText(
+                    String.format(
+                            Locale.CHINA,
+                            "当前配速 %s /km  ·  %.2f m/s",
+                            HistoricalRun.formatPace(s.speed),
+                            s.speed));
+        } else if (lastState != s.state) {
+            renderPace();
+        }
         if (compactStatus != null)
             compactStatus.setVisibility(!history || active ? View.VISIBLE : View.GONE);
         progress.setVisibility(!history || active ? View.VISIBLE : View.GONE);
@@ -721,9 +790,10 @@ public class FakeGPSActivity extends AppCompatActivity {
                             ? "先选时间和配速，再检查生成结果"
                             : String.format(
                                     Locale.CHINA,
-                                    "%.2f km  /  %d 分钟",
+                                        "%.2f km  /  %d 分 %02d 秒",
                                     prepared.distanceMeters / 1000,
-                                    prepared.durationSeconds / 60));
+                                        prepared.durationSeconds / 60,
+                                        prepared.durationSeconds % 60));
             progress.setProgressCompat(0, false);
             routeView.setDistance(prepared == null ? 0 : prepared.distanceMeters, false);
             return;
@@ -780,15 +850,11 @@ public class FakeGPSActivity extends AppCompatActivity {
             ZoneId zone = ZoneId.systemDefault();
             long
                     start =
-                            LocalDateTime.parse(Ui.value(hStart), DATE)
+                            RunDateTime.parse(Ui.value(hStart))
                                     .atZone(zone)
                                     .toInstant()
                                     .toEpochMilli(),
-                    end =
-                            LocalDateTime.parse(Ui.value(hEnd), DATE)
-                                    .atZone(zone)
-                                    .toInstant()
-                                    .toEpochMilli();
+                    end = RunDateTime.parse(Ui.value(hEnd)).atZone(zone).toInstant().toEpochMilli();
             return new HistoricalRun(
                     route,
                     start,
@@ -797,7 +863,8 @@ public class FakeGPSActivity extends AppCompatActivity {
                     Integer.parseInt(Ui.value(hCadence)),
                     Double.parseDouble(Ui.value(hWeight)),
                     zone.getId(),
-                    System.currentTimeMillis());
+                    System.currentTimeMillis(),
+                    historyNatural.isChecked());
         } catch (NumberFormatException e) {
             throw new IllegalArgumentException("请填写有效的步频和体重");
         }
@@ -817,9 +884,10 @@ public class FakeGPSActivity extends AppCompatActivity {
             historyHint.setText(
                     String.format(
                             Locale.CHINA,
-                            "预计 %.2f km，%d 分钟，路线 %.1f 次",
+                            "预计 %.2f km，%d 分 %02d 秒，路线 %.1f 次",
                             run.distanceMeters / 1000,
                             run.durationSeconds / 60,
+                            run.durationSeconds % 60,
                             run.distanceMeters / route.lengthMeters));
         } catch (Exception e) {
             historyHint.setText("填写完整时间与配速后自动计算距离");
@@ -940,6 +1008,7 @@ public class FakeGPSActivity extends AppCompatActivity {
     }
 
     private void setHistoryEnabled(boolean enabled) {
+        historyNatural.setEnabled(enabled);
         for (TextInputLayout f : new TextInputLayout[] {hStart, hEnd, hPace, hCadence, hWeight})
             f.setEnabled(enabled);
         connect.setEnabled(enabled && !checking);
@@ -974,7 +1043,7 @@ public class FakeGPSActivity extends AppCompatActivity {
                                         Math.min(
                                                 run.durationSeconds,
                                                 t + run.sampleIntervalSeconds())) {
-                            RunRoute.Point p = run.route.at(t * run.speed());
+                            RunRoute.Point p = run.route.at(run.distanceAtSecond(t));
                             xml.append("<trkpt lat=\"")
                                     .append(p.latitude)
                                     .append("\" lon=\"")
@@ -1000,6 +1069,9 @@ public class FakeGPSActivity extends AppCompatActivity {
                         "实时跑步：选择 KML 路线并配置速度。真机需在开发者选项中将 kgent 设为模拟定位应用。运行中可暂停、继续和调速。\n\n"
                                 + "历史补跑：单次选择过去的起止时间与配速，预览后交给 Keep。当前接入支持已提供 Root 的设备及 Keep"
                                 + " 8.7.30。也可单独导出 GPX。\n\n"
+                                + "起止时间可选到秒。自然配速在前 1 km 略快，后段仅有平滑小幅变化；关闭开关即可匀速。\n\n"
+                                + "Keep 地图底图：记录详情 → 全屏 → 图层 → Street。如果选择“隐藏地图”，只会显示纯色背景和轨迹。\n\n"
+                                + "路线请使用标准 GPS/WGS84 KML。交给 Keep 时会适配国内地图坐标，GPX 保留 GPS 坐标。\n\n"
                                 + "定位精度是位置误差半径，不是加速度。")
                 .setPositiveButton("知道了", null)
                 .setNeutralButton(
@@ -1045,6 +1117,8 @@ public class FakeGPSActivity extends AppCompatActivity {
         super.onPause();
         handler.removeCallbacks(update);
         SharedPreferences.Editor e = prefs.edit().putBoolean("history", history);
+        e.putBoolean("live_natural", liveNatural.isChecked());
+        e.putBoolean("history_natural", historyNatural.isChecked());
         for (TextInputLayout f :
                 new TextInputLayout[] {
                     speed, repeats, interval, altitude, accuracy, hStart, hEnd, hPace, hCadence,
