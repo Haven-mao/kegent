@@ -11,7 +11,7 @@ import org.json.JSONObject;
 public final class KeepRecordBuilder {
     public static final String KEEP_VERSION = "8.7.30";
     /** Keep's SummarySourceType.OFFLINE.h() value used by the local summary database. */
-    public static final String SUMMARY_SOURCE_OFFLINE = "offline";
+    public static final String SUMMARY_SOURCE_OFFLINE = "OFFLINE";
 
     private KeepRecordBuilder() {}
 
@@ -45,11 +45,10 @@ public final class KeepRecordBuilder {
                 .put("recoveryFixingUiPending", false);
         data.put("trainingSource", "sports_container_outdoorRunning")
                 .put("trainingTrace", "sports_container_outdoorRunning");
-        // Keep's OutdoorActivity vendor is what the detail/history UI uses for the native badge.
-        data.put(
-                "vendor",
-                new JSONObject().put("source", "KEEP").put("genre", "KEEP_APP"));
-        // These source fields are also consumed by the upload/analytics path.
+        // Keep serializes the enums as "Keep" / "KeepApp". Enum names KEEP / KEEP_APP
+        // deserialize to null and are omitted when Keep serializes the record for upload.
+        data.put("vendor", new JSONObject().put("source", "Keep").put("genre", "KeepApp"));
+        // Entry/analytics source fields are separate from the vendor identity.
         data.put("source", "keep_app").put("source_page", "keep_app");
         data.put("businessInfo", new JSONObject()).put("businessPassThroughInfo", new JSONObject());
         data.put(

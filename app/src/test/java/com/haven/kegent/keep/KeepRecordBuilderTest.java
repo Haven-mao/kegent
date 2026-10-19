@@ -9,6 +9,9 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.Test;
 
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
 public class KeepRecordBuilderTest {
@@ -33,8 +36,6 @@ public class KeepRecordBuilderTest {
         JSONObject data = KeepRecordBuilder.build(run, "test-user");
         JSONArray points = data.getJSONArray("geoPoints");
         assertEquals("outdoorRunning", data.getString("dataType"));
-        assertEquals("KEEP", data.getJSONObject("vendor").getString("source"));
-        assertEquals("KEEP_APP", data.getJSONObject("vendor").getString("genre"));
         assertEquals("keep_app", data.getString("source"));
         assertEquals("keep_app", data.getString("source_page"));
         assertFalse(data.getBoolean("isUploaded"));
@@ -52,6 +53,28 @@ public class KeepRecordBuilderTest {
         assertEquals(run.endTime, end.getLong("unixTimestamp"));
         assertEquals(run.distanceMeters, end.getDouble("currentTotalDistance"), 0.0001);
         assertEquals(run.totalSteps(), end.getInt("currentTotalSteps"));
+    }
+
+    @Test
+    public void sourceMatchesInstalledKeepSerializationContract() throws Exception {
+        JSONObject contract;
+        try (InputStream input =
+                        getClass().getResourceAsStream("/keep-source-contract-8.7.30.json");
+                ByteArrayOutputStream bytes = new ByteArrayOutputStream()) {
+            assertNotNull("Keep runtime contract fixture is required", input);
+            byte[] buffer = new byte[1024];
+            int count;
+            while ((count = input.read(buffer)) != -1) bytes.write(buffer, 0, count);
+            contract = new JSONObject(new String(bytes.toByteArray(), StandardCharsets.UTF_8));
+        }
+        JSONObject actual = KeepRecordBuilder.build(run(), "test-user").getJSONObject("vendor");
+        JSONObject expected = contract.getJSONObject("nativeVendor");
+        assertEquals(expected.getString("source"), actual.getString("source"));
+        assertEquals(expected.getString("genre"), actual.getString("genre"));
+        assertEquals(contract.getString("summarySource"), KeepRecordBuilder.SUMMARY_SOURCE_OFFLINE);
+        assertTrue(
+                KeepRecordBuilder.insertSql(run(), "test-user", "fixture")
+                        .contains("," + KeepRecordBuilder.quote(contract.getString("summarySource")) + ","));
     }
 
     @Test

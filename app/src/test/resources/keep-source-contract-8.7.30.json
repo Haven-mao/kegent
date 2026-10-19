@@ -1,0 +1,17 @@
+{
+  "keepVersion": "8.7.30",
+  "versionCode": 49337,
+  "observedOn": "2026-10-19",
+  "evidence": "Installed Keep Gson serialized OutdoorVendor after its native KEEP and KEEP_APP setters; SummarySourceType.OFFLINE.h() read in the same process. No record was queued or uploaded.",
+  "nativeVendor": {
+    "genre": "KeepApp",
+    "source": "Keep"
+  },
+  "summarySource": "OFFLINE",
+  "rejectedEnumNames": {
+    "input": { "source": "KEEP", "genre": "KEEP_APP" },
+    "parsedSource": null,
+    "parsedGenre": null,
+    "serializedVendor": {}
+  }
+}

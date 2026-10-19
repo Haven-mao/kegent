@@ -270,7 +270,7 @@ Visible live progress interpolates from the current displayed distance over (220
 
 `Ui.reveal` cancels an existing view animation, then reveals a changed form, status, or review over (180 ms), from alpha (0.6) and vertical offset (6 dp) to the resting state. It uses `DecelerateInterpolator(2)`. Both reveal and route interpolation consult `ValueAnimator.areAnimatorsEnabled()` and apply the final state immediately when animations are disabled. Footer errors become visible immediately without a custom reveal animation.
 
-History is one record at a time. The tonal review shows generated distance and trajectory details before an explicit Keep handoff dialog. Edits invalidate the prepared review. Keep the copy precise about preview, local preparation, and handoff; the UI does not establish server acceptance. `KeepRecordBuilder` writes the `vendor` identity (`source=KEEP`, `genre=KEEP_APP`) plus detail `source=keep_app` and `source_page=keep_app`; the SQLite summary uses Keep's normalized `sourceType=offline` value. Local parser and unit-test evidence do not establish Keep cloud/list source-badge acceptance. Status, error, and connection messages use polite accessibility live regions where implemented.
+History is one record at a time. The tonal review shows generated distance and trajectory details before an explicit Keep handoff dialog. Edits invalidate the prepared review. Keep the copy precise about preview, local preparation, and handoff; the UI does not establish server acceptance. `KeepRecordBuilder` writes the serialized `vendor` identity (`source=Keep`, `genre=KeepApp`) plus detail `source=keep_app` and `source_page=keep_app`; the SQLite summary uses `sourceType=OFFLINE`. The installed Keep parser confirms these vendor values survive serialization. Uploaded-history source text comes from the server; the fixed pending-list text does not verify it. Status, error, and connection messages use polite accessibility live regions where implemented.
 
 ### Identity Assets
 
@@ -290,7 +290,7 @@ The Android resource preparation task copies source resources into a generated d
 - Do honor system animation settings for reveals and progress.
 - Do label generated history, local preparation, and Keep handoff according to the actual state.
 - Do keep the Keep map help path explicit about tapping the Street thumbnail and confirming the layer.
-- Do preserve the Keep vendor identity (`KEEP_APP`), detail source fields (`keep_app`), and offline summary classification (`offline`).
+- Do distinguish serialized vendor values (`Keep` / `KeepApp`), entry source fields (`keep_app`), and queue classification (`OFFLINE`).
 - Do retain raster provenance and use the provenance manifest when checking asset changes.
 
 ### Don't:
