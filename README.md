@@ -118,11 +118,8 @@ chmod +x gradlew
 app/build/outputs/apk/kegent/kegent.apk
 ```
 
-该任务产出使用本机调试签名的 APK。新包名为 `com.haven.kegent`，可与旧 KmAo 安装包并存。
 
 设备测试使用 `:app:connectedDebugAndroidTest`，建议在专用测试设备上运行，并提前备份应用设置：测试流程会安装、卸载目标应用和测试包。普通设备测试默认跳过实际模拟定位服务与 Keep 写入测试；Keep 写入测试需要显式启用，同时隔离 IPv4 / IPv6 网络，并在结束后清理测试记录。
-
-截至 2026-10-19，1.3.1 的本地验证记录为：29 项 JVM 测试通过，调试构建通过，Lint 0 错误、59 项告警。设备行为、Keep 客户端契约与尚未完成的云端验证见 [验证记录](docs/VALIDATION.md)。
 
 ## 项目文档与来源
 
