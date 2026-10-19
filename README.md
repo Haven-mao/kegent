@@ -1,6 +1,6 @@
 # kegent
 
-kegent 是基于 [LangQi99/dlut-FakeRun](https://github.com/LangQi99/dlut-FakeRun) 魔改的 Android 路线与跑步配置工具。在保留 KmAo 浅蓝主题、图标和默认路线的基础上，加入实时跑步控制、自然配速、单条历史记录生成，以及针对指定版本 Keep 的本地交接功能。
+kegent 是基于 [LangQi99/dlut-FakeRun](https://github.com/LangQi99/dlut-FakeRun) 魔改的 Android 路线与跑步配置工具。加入实时跑步控制、自然配速、单条历史记录生成，以及针对指定版本 Keep 的本地交接功能。
 
 可以选择一条路线实时模拟定位，也可以按过去的起止时间和平均配速生成记录，预览后导出 GPX，或交给本机 Keep 处理同步。
 
@@ -33,7 +33,7 @@ kegent 是基于 [LangQi99/dlut-FakeRun](https://github.com/LangQi99/dlut-FakeRu
 
 实时模拟定位不要求 Root；其他应用是否接收模拟定位，取决于其自身行为和设备环境。
 
-### 单条历史补跑
+### 单条历史补跑(模拟器在设置中开root)
 
 1. 打开「历史补跑」，选择路线，填写过去的开始时间、结束时间和平均配速。
 2. 填写步频、体重，并按需启用「自然配速」。
@@ -49,7 +49,7 @@ kegent 是基于 [LangQi99/dlut-FakeRun](https://github.com/LangQi99/dlut-FakeRu
 
 | 条件 | 要求 |
 | --- | --- |
-| Keep 版本 | **8.7.30 / versionCode 49337**，其他版本会拒绝交接 |
+| Keep 版本 | **8.7.30 / versionCode 49337**，其他版本可能会拒绝交接 |
 | 安装位置 | Android 主用户中已安装并登录的 Keep |
 | 设备权限 | 已提供 Root 权限 |
 | 系统命令 | 可用的 `sqlite3`、`stat`、`restorecon` |
@@ -76,7 +76,7 @@ kegent 是基于 [LangQi99/dlut-FakeRun](https://github.com/LangQi99/dlut-FakeRu
 
 kegent 的预览使用 OpenStreetMap 底图并保留署名。网络或瓦片服务不可用时，页面仍显示轨迹及回退背景，回退背景不代表真实街区。Keep 使用自己的地图服务与图层，两者的样式可能不同。
 
-如果 Keep 记录中只有轨迹、没有道路或地名，可打开记录的「全屏 → 图层」，**点击 Street 上方的地图缩略图**，然后确认。只点击下方的 Street 文字可能不会切换；「隐藏地图」或 Gotham 图层可能呈现纯色 / 深色背景。
+如果 Keep 记录中只有轨迹、没有道路或地名，可打开记录的「全屏 → 图层」，**点击 Street 上方的地图缩略图（皮肤）**，然后确认。只点击下方的 Street 文字可能不会切换；「隐藏地图」或 Gotham 图层可能呈现纯色 / 深色背景。
 
 ## 本地构建
 
@@ -127,6 +127,5 @@ app/build/outputs/apk/kegent/kegent.apk
 | [产品约定](PRODUCT.md) | 功能范围与产品行为约束 |
 | [设计约定](DESIGN.md) | 视觉风格与交互规范 |
 
-项目保留原有路径计算的可读 Java 源码，并将路线与配速逻辑、界面组件、Keep 接入分别整理到 `core`、`ui`、`keep` 模块。KmAo 的图标、浅蓝配色与 DUTPJ 默认路线经已安装 APK 核对恢复；丢失的 Git 历史、原始注释和签名私钥无法从 APK 还原。
 
 感谢原项目 [LangQi99/dlut-FakeRun](https://github.com/LangQi99/dlut-FakeRun) 提供的路线与模拟定位实现基础。
