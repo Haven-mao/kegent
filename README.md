@@ -1,6 +1,6 @@
 # kegent
 ## 免责声明：本项目仅用于逆向学习部分实现，不可用于任何形式的商业用途
-
+## 详细教程：https://my.feishu.cn/wiki/WVlswXjAbirvtQkGJc0cpGdEnQf
 kegent 是基于 [LangQi99/dlut-FakeRun](https://github.com/LangQi99/dlut-FakeRun) 魔改的 Android 路线与跑步配置工具。加入实时跑步控制、自然配速、单条历史记录生成，以及针对指定版本 Keep 的本地交接功能。
 
 可以选择一条路线实时模拟定位，也可以按过去的起止时间和平均配速生成记录，预览后导出 GPX，或交给本机 Keep 处理同步。
