@@ -18,6 +18,7 @@ public final class RouteDraft {
     public String savedRouteId = "";
     public final List<Anchor> anchors = new ArrayList<>();
     public boolean closed, smooth, closingManual, trackInitialized;
+    public boolean trackVisible = true;
     public RunRoute.Point center = new RunRoute.Point(40.6869, 122.1168);
     public double radius = 36.8, straight = (400 - 2 * Math.PI * 36.8) / 2;
     public double bearing, startFraction, laneWidth = 1.22;
@@ -28,6 +29,11 @@ public final class RouteDraft {
         List<RunRoute.Point> result = new ArrayList<>();
         for (Anchor anchor : anchors) result.add(anchor.point);
         return result;
+    }
+    public boolean hasGeometry() { return mode == Mode.TRACK ? trackVisible : !anchors.isEmpty(); }
+    public void clearGeometry() {
+        anchors.clear(); closed = false; closingManual = false; savedRouteId = "";
+        if (mode == Mode.TRACK) trackVisible = false;
     }
     public int segmentCount() { return Math.max(0, anchors.size() - 1) + (closed && anchors.size() > 1 ? 1 : 0); }
     public boolean manualSegment(int index) {
@@ -49,7 +55,7 @@ public final class RouteDraft {
     }
     public JSONObject json() throws Exception {
         JSONObject o = new JSONObject().put("version", 1).put("crs", "WGS84").put("mode", mode.name())
-                .put("name", name).put("savedRouteId", savedRouteId).put("closed", closed).put("smooth", smooth).put("closingManual", closingManual).put("trackInitialized", trackInitialized)
+                .put("name", name).put("savedRouteId", savedRouteId).put("closed", closed).put("smooth", smooth).put("closingManual", closingManual).put("trackInitialized", trackInitialized).put("trackVisible", trackVisible)
                 .put("center", new JSONArray().put(center.longitude).put(center.latitude))
                 .put("radius", radius).put("straight", straight).put("bearing", bearing)
                 .put("startFraction", startFraction).put("lane", lane).put("laneWidth", laneWidth).put("clockwise", clockwise);
@@ -65,6 +71,7 @@ public final class RouteDraft {
         d.mode = Mode.valueOf(o.getString("mode")); d.name = o.optString("name", "地图路线");
         d.savedRouteId = o.optString("savedRouteId", "");
         d.trackInitialized = o.optBoolean("trackInitialized", d.mode == Mode.TRACK);
+        d.trackVisible = o.optBoolean("trackVisible", true);
         d.closed = o.optBoolean("closed"); d.smooth = o.optBoolean("smooth"); d.closingManual = o.optBoolean("closingManual");
         JSONArray center = o.getJSONArray("center"); d.center = new RunRoute.Point(center.getDouble(1), center.getDouble(0));
         if (Math.abs(d.center.latitude) > 85) throw new IllegalArgumentException("编辑地图暂不支持极地区域");

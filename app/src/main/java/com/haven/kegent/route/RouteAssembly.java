@@ -15,6 +15,7 @@ public final class RouteAssembly {
     public double maxSnap;
     public static RouteAssembly build(RouteDraft d, Map<String, List<RunRoute.Point>> cache, String endpoint) {
         RouteAssembly out = new RouteAssembly();
+        if (d.mode == RouteDraft.Mode.TRACK && !d.trackVisible) { out.problem = "点击地图放置操场路线"; return out; }
         try {
             if (d.mode != RouteDraft.Mode.ROAD) {
                 List<RunRoute.Point> shape = d.mode == RouteDraft.Mode.TRACK ? RouteGeometry.track(d)

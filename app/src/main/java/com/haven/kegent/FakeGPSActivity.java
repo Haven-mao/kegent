@@ -386,7 +386,6 @@ public class FakeGPSActivity extends AppCompatActivity {
         Ui.add(form, paceHint, 4);
         liveNatural = naturalPaceSwitch("live_natural");
         Ui.add(form, liveNatural, 12);
-        Ui.add(form, Ui.note(this, "前 1 km 略快，之后平稳小幅变化；关闭后匀速运行。"), 2);
         repeats = field("路线次数", "repeats", "15", InputType.TYPE_CLASS_NUMBER);
         interval = field("更新间隔 · 秒", "interval", "0.3", decimal);
         Ui.pair(form, repeats, interval, 16);

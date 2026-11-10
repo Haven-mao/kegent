@@ -55,8 +55,11 @@ public class RouteEditorSmokeTest {
         Thread.sleep(700); onView(withId(R.id.editor_input_draw)).perform(click());
         onView(withId(R.id.editor_draw_surface)).perform(drawStroke());
         onView(withText("保存并应用")).check(matches(isEnabled()));
-        tool("撤销"); onView(withText("保存并应用")).check(matches(not(isEnabled())));
-        tool("重做"); onView(withText("保存并应用")).check(matches(isEnabled()));
+        tool("清空"); onView(withText("保存并应用")).check(matches(not(isEnabled())));
+        onView(withText("清空")).check(matches(not(isEnabled())));
+        tool("撤销"); onView(withText("保存并应用")).check(matches(isEnabled()));
+        onView(withText("重做")).check(androidx.test.espresso.assertion.ViewAssertions.doesNotExist());
+        onView(withText("删除选点")).check(androidx.test.espresso.assertion.ViewAssertions.doesNotExist());
         Thread.sleep(700);
         RouteRepository repository = new RouteRepository(context.getFilesDir());
         String before = repository.readDraft().getJSONObject("draft").getJSONArray("anchors").toString();
@@ -79,6 +82,23 @@ public class RouteEditorSmokeTest {
         assertTrue(saved.anchors.size() >= 4); assertTrue(saved.anchors.size() < 100);
         try (InputStream fallback = context.getResources().openRawResource(R.raw.dutpj_mutipoint)) {
             assertTrue(repository.load(fallback, "legacy").lengthMeters > 20);
+        }
+    }
+    @Test public void clearedTrackStaysEmptyAcrossModesAndCanBeUndoneOrPlacedAgain() throws Exception {
+        Intent intent = new Intent(context, FakeGPSActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        InstrumentationRegistry.getInstrumentation().startActivitySync(intent);
+        awaitText("地图绘制 · 道路 / 操场"); onView(withText("地图绘制 · 道路 / 操场")).perform(click());
+        awaitText("地图绘制"); Thread.sleep(700); onView(withText("操场")).perform(click());
+        onView(withText("保存并应用")).check(matches(isEnabled()));
+        tool("清空"); onView(withText("保存并应用")).check(matches(not(isEnabled())));
+        onView(withText("设置起跑点")).check(matches(not(isEnabled())));
+        tool("撤销"); onView(withText("保存并应用")).check(matches(isEnabled()));
+        tool("清空"); onView(withText("沿道路")).perform(click()); onView(withText("操场")).perform(click());
+        onView(withText("保存并应用")).check(matches(not(isEnabled())));
+        onView(withId(R.id.editor_map)).perform(tap(.43f, .43f));
+        onView(withText("保存并应用")).check(matches(isEnabled()));
+        try (InputStream in = context.getResources().openRawResource(R.raw.dutpj_mutipoint)) {
+            assertEquals(400.04, new RouteRepository(context.getFilesDir()).load(in, "default").lengthMeters, .1);
         }
     }
     private static void tool(String text) {

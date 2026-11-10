@@ -58,7 +58,7 @@ public final class RouteEditorActivity extends AppCompatActivity implements Rout
     private final LinkedHashMap<String, List<RunRoute.Point>> cache = new LinkedHashMap<String, List<RunRoute.Point>>(32, .75f, true) {
         @Override protected boolean removeEldestEntry(Map.Entry<String, List<RunRoute.Point>> entry) { return size() > 60; }
     };
-    private final ArrayDeque<String> undo = new ArrayDeque<>(), redo = new ArrayDeque<>();
+    private final ArrayDeque<String> undo = new ArrayDeque<>();
     private RouteDraft draft = new RouteDraft();
     private RouteAssembly assembly = new RouteAssembly();
     private RouteDraft currentTrack;
@@ -72,7 +72,7 @@ public final class RouteEditorActivity extends AppCompatActivity implements Rout
     private RouteHandleOverlay overlay;
     private RouteDrawOverlay drawing;
     private TextView status, hint, mapNotice;
-    private MaterialButton save, back, undoButton, redoButton, delete, segment, track, start, retry;
+    private MaterialButton save, back, undoButton, clearButton, segment, track, start, retry;
     private MaterialButtonToggleGroup inputModes;
     private InputMode inputMode = InputMode.POINT;
     private boolean wideTools;
@@ -254,17 +254,16 @@ public final class RouteEditorActivity extends AppCompatActivity implements Rout
         });
         if (wideTools) Ui.add(controls, inputModes, 12);
         LinearLayout actionRow = wideTools ? Ui.column(this) : row();
-        undoButton = button("撤销", v -> history(false)); redoButton = button("重做", v -> history(true));
-        delete = button("删除选点", v -> deletePoint());
+        undoButton = button("撤销", v -> undoLast()); clearButton = button("清空", v -> clearRoute());
         segment = button("本段手绘", v -> toggleSegment()); track = button("跑道参数", v -> trackParameters());
         start = button("设置起跑点", v -> { if (!saving) { pickingStart = !pickingStart; render(); } });
         if (wideTools) {
-            Ui.pair(actionRow, undoButton, redoButton, 0);
-            for (MaterialButton b : new MaterialButton[] {delete, segment, track, start}) Ui.add(actionRow, b, 4);
+            Ui.pair(actionRow, undoButton, clearButton, 0);
+            for (MaterialButton b : new MaterialButton[] {segment, track, start}) Ui.add(actionRow, b, 4);
             Ui.add(controls, actionRow, 12);
         } else {
             HorizontalScrollView actions = new HorizontalScrollView(this); actions.setHorizontalScrollBarEnabled(false); actions.addView(actionRow);
-            for (MaterialButton b : new MaterialButton[] {undoButton, redoButton, delete, segment, track, start}) actionRow.addView(b);
+            for (MaterialButton b : new MaterialButton[] {undoButton, clearButton, segment, track, start}) actionRow.addView(b);
             Ui.add(controls, actions, 0);
         }
         LinearLayout switches = wideTools ? Ui.column(this) : row();
@@ -302,20 +301,25 @@ public final class RouteEditorActivity extends AppCompatActivity implements Rout
 
     private void syncControls() {
         binding = true; modes.selectTab(modes.getTabAt(draft.mode.ordinal()));
-        closed.setChecked(draft.mode == RouteDraft.Mode.TRACK || draft.closed); smooth.setChecked(draft.smooth);
+        closed.setChecked(draft.mode == RouteDraft.Mode.TRACK ? draft.trackVisible : draft.closed); smooth.setChecked(draft.smooth);
         closed.setEnabled(draft.mode != RouteDraft.Mode.TRACK && !saving);
         smooth.setEnabled(draft.mode == RouteDraft.Mode.MANUAL && !saving); binding = false;
     }
     private void remember() {
-        try { undo.push(draft.json().toString()); while (undo.size() > 40) undo.removeLast(); redo.clear(); }
+        try { undo.push(draft.json().toString()); while (undo.size() > 40) undo.removeLast(); }
         catch (Exception e) { message("无法记录撤销状态"); }
     }
-    private void history(boolean forward) {
+    private void undoLast() {
         if (saving || loading) return;
-        ArrayDeque<String> source = forward ? redo : undo, target = forward ? undo : redo;
-        if (source.isEmpty()) return;
-        try { target.push(draft.json().toString()); draft = RouteDraft.fromJson(new JSONObject(source.pop())); selected = -1; pickingStart = false; edited(); }
+        if (undo.isEmpty()) return;
+        try { draft = RouteDraft.fromJson(new JSONObject(undo.pop())); selected = -1; pickingStart = false; edited(); }
         catch (Exception e) { message("无法恢复这一步编辑"); }
+    }
+    private void clearRoute() {
+        if (loading || saving || !draft.hasGeometry()) return;
+        drawing.cancelStroke(); remember();
+        main.removeCallbacks(dragRender); dragRenderQueued = false;
+        draft.clearGeometry(); selected = -1; pickingStart = false; edited();
     }
     private void edited() {
         revision++; geometryDirty = true; draftTouched = true; modeDrafts.put(draft.mode, draft);
@@ -346,7 +350,7 @@ public final class RouteEditorActivity extends AppCompatActivity implements Rout
             if (pickingStart) {
                 updateStart(p);
                 pickingStart = false;
-            } else draft.center = p;
+            } else { draft.center = p; draft.trackVisible = true; }
             edited(); return;
         }
         int limit = draft.mode == RouteDraft.Mode.ROAD ? 20 : 500;
@@ -368,10 +372,6 @@ public final class RouteEditorActivity extends AppCompatActivity implements Rout
             }
         }
         return index;
-    }
-    private void deletePoint() {
-        if (selected < 0 || selected >= draft.anchors.size() || draft.mode == RouteDraft.Mode.TRACK || saving) return;
-        remember(); draft.anchors.remove(selected); selected = -1; edited();
     }
     private void toggleSegment() {
         if (draft.mode != RouteDraft.Mode.ROAD || selected < 0 || saving) return;
@@ -419,8 +419,8 @@ public final class RouteEditorActivity extends AppCompatActivity implements Rout
         if (status == null || destroyed) return;
         boolean updateGeometry = geometryDirty;
         if (updateGeometry) { assembly = RouteAssembly.build(draft, cache, endpoint()); geometryDirty = false; }
-        undoButton.setEnabled(!undo.isEmpty() && !saving); redoButton.setEnabled(!redo.isEmpty() && !saving);
-        track.setEnabled(!saving); start.setEnabled(!saving);
+        undoButton.setEnabled(!undo.isEmpty() && !saving && !loading); clearButton.setEnabled(draft.hasGeometry() && !saving && !loading);
+        track.setEnabled(!saving); start.setEnabled(!saving && draft.trackVisible);
         boolean isTrack = draft.mode == RouteDraft.Mode.TRACK;
         binding = true;
         inputModes.check(inputMode == InputMode.DRAW ? R.id.editor_input_draw : inputMode == InputMode.MOVE ? R.id.editor_input_move : R.id.editor_input_point);
@@ -445,12 +445,12 @@ public final class RouteEditorActivity extends AppCompatActivity implements Rout
             size.width = isTrack ? 0 : dp(108); size.weight = isTrack ? 1 : 0; save.setLayoutParams(size);
         }
         track.setVisibility(isTrack ? View.VISIBLE : View.GONE); start.setVisibility(isTrack ? View.VISIBLE : View.GONE);
-        delete.setVisibility(isTrack ? View.GONE : View.VISIBLE); segment.setVisibility(draft.mode == RouteDraft.Mode.ROAD ? View.VISIBLE : View.GONE);
-        delete.setEnabled(selected >= 0 && !saving); segment.setEnabled(selected >= 0 && (selected > 0 || draft.closed) && !saving);
+        segment.setVisibility(draft.mode == RouteDraft.Mode.ROAD ? View.VISIBLE : View.GONE);
+        segment.setEnabled(selected >= 0 && (selected > 0 || draft.closed) && !saving);
         if (draft.mode == RouteDraft.Mode.ROAD && selected >= 0 && selected < draft.anchors.size())
             segment.setText((selected == 0 ? draft.closingManual : draft.anchors.get(selected).manual) ? "本段沿路" : "本段手绘");
         start.setText(pickingStart ? "取消选起点" : "设置起跑点");
-        hint.setText(isTrack ? pickingStart ? "点击跑道附近，设为起跑点" : "点击放置中心；拖“中”移动，拖“长”转向调长，拖“宽”调弯道"
+        hint.setText(isTrack ? !draft.trackVisible ? "点击地图重新放置操场，或撤销恢复清空前的路线" : pickingStart ? "点击跑道附近，设为起跑点" : "点击放置中心；拖“中”移动，拖“长”转向调长，拖“宽”调弯道"
                 : inputMode == InputMode.MOVE ? "拖动移动地图，双指缩放；切回点选或画线继续编辑"
                 : inputMode == InputMode.DRAW ? (draft.mode == RouteDraft.Mode.ROAD ? "拖动画线，松手沿道路规划；双指移动地图" : "拖动直接画轨迹，双指移动地图；下一笔从终点接续")
                 : "点击加点 · 拖动调整 · 长按插点" + (draft.mode == RouteDraft.Mode.MANUAL ? "；可开启平滑曲线" : "；选择终点可切换本段手绘"));
@@ -463,13 +463,13 @@ public final class RouteEditorActivity extends AppCompatActivity implements Rout
         status.setText(text); save.setText(saving ? "正在保存…" : "保存并应用");
         save.setEnabled(!loading && !saving && !planning && assembly.route != null);
         overlay.handles.clear(); overlay.pending.clear(); overlay.pending.addAll(assembly.pending); overlay.selected = selected;
-        if (isTrack) {
+        if (isTrack && draft.trackVisible) {
             double r = draft.radius + (draft.lane - 1) * draft.laneWidth;
             overlay.handles.add(new RouteHandleOverlay.Handle(draft.center, "中"));
             overlay.handles.add(new RouteHandleOverlay.Handle(RouteGeometry.offset(draft.center, draft.straight / 2 + r, 0, draft.bearing), "长"));
             overlay.handles.add(new RouteHandleOverlay.Handle(RouteGeometry.offset(draft.center, 0, r, draft.bearing), "宽"));
             if (assembly.route != null) overlay.handles.add(new RouteHandleOverlay.Handle(assembly.route.get(0), "起"));
-        } else for (int i = 0; i < draft.anchors.size(); i++) overlay.handles.add(new RouteHandleOverlay.Handle(draft.anchors.get(i).point, String.valueOf(i + 1)));
+        } else if (!isTrack) for (int i = 0; i < draft.anchors.size(); i++) overlay.handles.add(new RouteHandleOverlay.Handle(draft.anchors.get(i).point, String.valueOf(i + 1)));
         if (updateGeometry) drawLines(); else overlay.reprojectHandles();
     }
     private void drawLines() {
@@ -551,14 +551,14 @@ public final class RouteEditorActivity extends AppCompatActivity implements Rout
         Ui.add(form, Ui.note(this, "单圈 = 2 × 直道 + 2π × 当前道半径。模板长度是计算值，需对照实际操场校准。"), 8);
         ScrollView scroll = new ScrollView(this); scroll.addView(form);
         androidx.appcompat.app.AlertDialog dialog = new MaterialAlertDialogBuilder(this).setTitle("跑道参数").setView(scroll)
-                .setNeutralButton("400 米模板", (d, w) -> { remember(); draft.radius = 36.8; draft.straight = (400 - 2 * Math.PI * 36.8) / 2; draft.lane = 1; draft.laneWidth = 1.22; edited(); fit(); })
+                .setNeutralButton("400 米模板", (d, w) -> { remember(); draft.radius = 36.8; draft.straight = (400 - 2 * Math.PI * 36.8) / 2; draft.lane = 1; draft.laneWidth = 1.22; draft.trackVisible = true; edited(); fit(); })
                 .setNegativeButton("取消", null).setPositiveButton("应用", null).create();
         dialog.setOnShowListener(v -> dialog.getButton(-1).setOnClickListener(button -> {
             try {
                 RouteDraft next = RouteDraft.fromJson(draft.json()); next.straight = decimal(straight); next.radius = decimal(radius);
                 next.bearing = decimal(bearing); double laneValue = decimal(lane); if (laneValue != Math.rint(laneValue)) throw new IllegalArgumentException("道次须为整数");
                 next.lane = (int) laneValue; next.laneWidth = decimal(width); next.clockwise = clockwise.isChecked();
-                RouteGeometry.track(next); remember(); draft = next; edited(); fit(); dialog.dismiss();
+                RouteGeometry.track(next); remember(); next.trackVisible = true; draft = next; edited(); fit(); dialog.dismiss();
             } catch (Exception e) { message(e.getMessage()); }
         })); dialog.show();
     }
@@ -576,7 +576,7 @@ public final class RouteEditorActivity extends AppCompatActivity implements Rout
             else if (which == 3) fromCurrent(); else if (which == 4) jump(); else if (which == 5) pointList();
             else if (which == 6) services(); else if (which == 7) loadStyle(); else if (which == 8) restorePreviousDraft();
             else new MaterialAlertDialogBuilder(this).setTitle("地图绘制说明")
-                    .setMessage("点选：点击加点，长按插点，拖动小圆点调整。小圆点周围保留了更大的触摸范围。\n\n画线：单指或鼠标拖动直接绘制，松手结束一笔；下一笔从终点附近接续。双指移动或缩放地图，也可切到“移动”后单指拖图。每笔可撤销和重做。\n\n道路：点选或画线后按步行路网规划；红色虚线表示未完成部分。选中终点可将该段改为手绘。\n\n操场：拖动中心、长度和宽度手柄，参数中可切换方向与道次。\n\n手动：保留绘制形状，可选平滑和闭合；平滑不保证沿道路。手机下方“工具”可展开更多操作。\n\n草稿自动保存在本机；只有“保存并应用”会替换当前路线。")
+                    .setMessage("点选：点击加点，长按插点，拖动小圆点调整。小圆点周围保留了更大的触摸范围。\n\n画线：单指或鼠标拖动直接绘制，松手结束一笔；下一笔从终点附近接续。双指移动或缩放地图，也可切到“移动”后单指拖图。每笔可撤销；“清空”移除当前模式的轨迹，也可撤销恢复。\n\n道路：点选或画线后按步行路网规划；红色虚线表示未完成部分。选中终点可将该段改为手绘。\n\n操场：拖动中心、长度和宽度手柄，参数中可切换方向与道次。\n\n手动：保留绘制形状，可选平滑和闭合；平滑不保证沿道路。手机下方“工具”可展开更多操作。\n\n草稿自动保存在本机；只有“保存并应用”会替换当前路线。")
                     .setPositiveButton("知道了", null).show();
         }).show();
     }
