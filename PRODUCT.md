@@ -35,7 +35,7 @@ Configure a route, control real-time playback, and prepare one historical runnin
 - Distinguish local preparation, delivery to Keep, and server confirmation. Do not report unverified cloud success.
 - Historical Keep handoff uses the native serialized vendor identity (`source=Keep`, `genre=KeepApp`) and the separate `OFFLINE` queue classification. The uploaded history source comes from the server; pending-list text does not verify it.
 - Validate parameters, retain user input, and preserve data through recoverable errors.
-- Changes are committed locally on main; no remote push is requested.
+- Code changes are committed on main and pushed to origin/main after completion, as requested by the owner.
 
 ## Brand Commitments
 
