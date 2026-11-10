@@ -1,10 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <data-extraction-rules>
     <cloud-backup>
+        <exclude domain="file" path="app-updates/" />
+        <exclude domain="sharedpref" path="app_update.xml" />
         <exclude domain="file" path="keep-handoffs/" />
         <exclude domain="sharedpref" path="keep_receipts.xml" />
     </cloud-backup>
     <device-transfer>
+        <exclude domain="file" path="app-updates/" />
+        <exclude domain="sharedpref" path="app_update.xml" />
         <exclude domain="file" path="keep-handoffs/" />
         <exclude domain="sharedpref" path="keep_receipts.xml" />
     </device-transfer>

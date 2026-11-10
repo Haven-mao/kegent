@@ -211,7 +211,7 @@ The footer uses (20 dp) horizontal, (8 dp) top, and (12 dp) bottom padding. Its 
 
 ### Current visual refinements
 
-- The top bar keeps `实时跑步 / 历史补跑` beside the title on wide screens and in the immediately following row on phones. `使用说明` sits directly before the 76 × 48 dp day/night control.
+- The top bar keeps `实时跑步 / 历史补跑` beside the title on wide screens and in the immediately following row on phones. `帮助与更新` sits directly before the 76 × 48 dp day/night control and opens usage help or app updates.
 - The original 36 dp artwork is clipped to a 10 dp rounded square without changing its pixels. `DayNightToggleView` is a native Canvas component that keeps the 76 × 42 dp capsule, three halos, two clouds, six four-point stars, three craters, 650 ms motion, and accessible switch label from the supplied day-night-toggle specification.
 - `ui_background` resolves to `#121212` in `values-night`; the theme transition handles `uiMode` in place so a theme change does not expose a black recreation frame.
 - `RoutePreviewView` uses a native MapLibre MapView and real map tiles, sharing configurable styles with the full-screen editor. A separate route overlay remains available while tiles load. Network failures show an explicit message; no decorative streets, parks or water are generated.

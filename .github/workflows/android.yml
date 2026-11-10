@@ -22,5 +22,10 @@ jobs:
 
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
+    - uses: actions/setup-node@v4
+      with:
+        node-version: '22'
     - name: Build with Gradle
-      run: ./gradlew build
+      run: ./gradlew :app:assembleDebug :app:testDebugUnitTest :app:lintDebug
+    - name: Validate update release metadata generation
+      run: node --test scripts/create-update-release.test.mjs

@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <full-backup-content>
+    <exclude domain="file" path="app-updates/" />
+    <exclude domain="sharedpref" path="app_update.xml" />
     <exclude domain="file" path="keep-handoffs/" />
     <exclude domain="sharedpref" path="keep_receipts.xml" />
 </full-backup-content>

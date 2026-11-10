@@ -17,4 +17,8 @@
     <item name="route_library_default" type="id"/>
     <item name="route_library_builtin" type="id"/>
     <item name="place_search_input" type="id"/>
+    <item name="update_status" type="id"/>
+    <item name="update_check" type="id"/>
+    <item name="update_download" type="id"/>
+    <item name="update_install" type="id"/>
 </resources>

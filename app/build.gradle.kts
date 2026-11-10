@@ -7,6 +7,11 @@ val packagedResources = tasks.register<Sync>("prepareAppResources") {
     from("src/main/res") { exclude("**/*.webp.json") }
     into(layout.buildDirectory.dir("generated/packaged-resources/main"))
 }
+val releaseKeyFile = providers.environmentVariable("KEGENT_KEYSTORE_FILE").orNull
+val releaseStorePassword = providers.environmentVariable("KEGENT_STORE_PASSWORD").orNull
+val releaseKeyAlias = providers.environmentVariable("KEGENT_KEY_ALIAS").orNull
+val releaseKeyPassword = providers.environmentVariable("KEGENT_KEY_PASSWORD").orNull
+val hasReleaseSigning = listOf(releaseKeyFile, releaseStorePassword, releaseKeyAlias, releaseKeyPassword).all { !it.isNullOrBlank() }
 
 android {
     namespace = "com.haven.kegent"
@@ -16,8 +21,8 @@ android {
         applicationId = "com.haven.kegent"
         minSdk = 26
         targetSdk = 34
-        versionCode = 10
-        versionName = "1.4.3"
+        versionCode = 11
+        versionName = "1.4.4"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -27,6 +32,14 @@ android {
             versionNameSuffix = "-dev"
         }
         release {
+            if (hasReleaseSigning) {
+                signingConfig = signingConfigs.create("fixedRelease") {
+                    storeFile = file(releaseKeyFile!!)
+                    storePassword = releaseStorePassword
+                    keyAlias = releaseKeyAlias
+                    keyPassword = releaseKeyPassword
+                }
+            }
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -42,6 +55,9 @@ android {
 }
 
 tasks.named("preBuild") { dependsOn(packagedResources) }
+tasks.matching { it.name == "packageRelease" }.configureEach {
+    doFirst { check(hasReleaseSigning) { "Release signing requires KEGENT_KEYSTORE_FILE, KEGENT_STORE_PASSWORD, KEGENT_KEY_ALIAS and KEGENT_KEY_PASSWORD." } }
+}
 
 dependencies {
 

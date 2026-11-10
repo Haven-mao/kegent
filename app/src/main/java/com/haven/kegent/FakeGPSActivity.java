@@ -177,8 +177,17 @@ public class FakeGPSActivity extends AppCompatActivity {
             tabParams.setMarginStart(dp(8));
             top.addView(tabs, tabParams);
         }
-        MaterialButton help = Ui.button(this, "使用说明", false);
-        help.setOnClickListener(v -> showHelp());
+        MaterialButton help = Ui.button(this, "帮助与更新", false);
+        help.setOnClickListener(v -> {
+            android.widget.PopupMenu menu = new android.widget.PopupMenu(this, help);
+            menu.getMenu().add(0, 1, 0, "使用说明"); menu.getMenu().add(0, 2, 1, "检查更新");
+            menu.setOnMenuItemClickListener(item -> {
+                if (item.getItemId() == 1) showHelp();
+                else if (busy) showError("当前操作完成后再检查更新");
+                else startActivity(new Intent(this, AppUpdateActivity.class));
+                return true;
+            }); menu.show();
+        });
         LinearLayout.LayoutParams helpParams = new LinearLayout.LayoutParams(-2, dp(48));
         helpParams.setMarginStart(dp(8));
         top.addView(help, helpParams);

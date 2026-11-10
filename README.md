@@ -10,7 +10,7 @@ kegent 是基于 [LangQi99/dlut-FakeRun](https://github.com/LangQi99/dlut-FakeRu
 | --- | --- |
 | 应用名称 | `kegent` |
 | 应用 ID / 源码包名 | `com.haven.kegent` |
-| 当前版本 | `1.4.3`，调试构建为 `1.4.3-dev` |
+| 当前版本 | `1.4.4`，调试构建为 `1.4.4-dev` |
 | 系统要求 | Android 8.0 及以上（API 26） |
 | 技术栈 | Java、Android Views、Material、MapLibre Native、Gradle |
 
@@ -32,6 +32,7 @@ kegent 是基于 [LangQi99/dlut-FakeRun](https://github.com/LangQi99/dlut-FakeRu
 - **真实地图预览与导出**：主页面和编辑页均使用原生 MapLibre 真实地图，展示道路、建筑和地名；保留路线及移动位置标记，支持历史记录导出 GPX。
 - **界面适配**：保留浅蓝视觉风格，支持浅色 / 深色主题、手机窄屏、横屏和平板布局；原生动效遵循系统动画设置。
 - **平板独立滚动**：主页面左侧地图/路线和右侧参数各自上下滚动，底部主操作保持固定。
+- **应用内更新**：在“帮助与更新 → 检查更新”中查看新版、下载 APK、校验签名并打开系统安装确认；支持暂停续传和更新来源设置。旧版首次需要手动安装带此功能的版本。
 
 ## 开始使用
 
@@ -112,6 +113,8 @@ kegent 的主页面和编辑页使用真实地图并保留署名；原有装饰�
 
 ## 本地构建
 
+后续发布使用固定兼容签名和 Release 中的 `update.json`。配置、产物生成与 GitHub 发布步骤见 [应用内更新接入说明](docs/APP_UPDATE.md)；当前本地构建不会自动发布远程版本。
+
 需要 JDK 17 或兼容的更新版本，以及 Android SDK 36。项目使用 Gradle Wrapper 8.14.3、Android Gradle Plugin 8.13.0；`compileSdk` 为 36，`targetSdk` 为 34，`minSdk` 为 26。
 
 1. 在 Android Studio 中打开项目，或准备好命令行构建环境。
@@ -155,7 +158,8 @@ app/build/outputs/apk/kegent/kegent.apk
 | [素材来源记录](docs/ASSET_PROVENANCE.json) | 图标、栅格素材的来源与摘要 |
 | [产品约定](PRODUCT.md) | 功能范围与产品行为约束 |
 | [地图编辑接入说明](docs/MAP_ROUTE_EDITOR.md) | 道路、操场、手动模式与测试方式 |
-| [应用内更新调研](docs/APP_UPDATE_FEASIBILITY.md) | 旧版签名兼容性、更新方案与发布流水线建议；当前未接入 |
+| [应用内更新接入说明](docs/APP_UPDATE.md) | 使用入口、下载校验、固定签名与发布工作流 |
+| [应用内更新调研](docs/APP_UPDATE_FEASIBILITY.md) | 旧版签名兼容性与最初选型依据 |
 | [设计约定](DESIGN.md) | 视觉风格与交互规范 |
 
 

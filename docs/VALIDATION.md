@@ -1,5 +1,18 @@
 # 本地验证记录
 
+## 2026-11-10：1.4.4 应用内更新接入
+
+- 主页面“帮助与更新 → 检查更新”已接入真实版本源检查、更新说明、下载/暂停/Range 续传、摘要与 APK 元数据/签名校验、外部来源安装授权及系统安装器。下载完成和打开安装器均不视为更新成功。
+- `:app:exportDebugApk`、`:app:testDebugUnitTest`、`:app:lintDebug` 通过：94 项 JVM 测试，0 失败；Lint 0 错误、74 项非阻断告警。发布产物脚本 6 项 Node 测试通过。
+- 新增 20 项 JVM 更新测试覆盖清单格式、整数版本、系统版本溢出、HTTPS、凭据 URL 拒绝、稳定通道、大小/摘要、完整下载、暂停续传、Range 被忽略/不匹配、文件不完整、摘要错误、循环跳转、HTTPS 降级拒绝和 Release 清单发现。
+- 独立 `com.haven.kegent.updatetest` 在蓝叠 Android 9 验证真实 APK：兼容同签名候选通过；其他签名、其他包名及当前版本拒绝；恢复已下载更新；FileProvider 不暴露路线文件；取消系统安装时当前版本保留。Android 9 模拟器签名查询补充同时请求新旧字段后回归通过，未放宽证书一致性要求。
+- 已真实打开 Android 系统更新确认，确认安装后 PackageManager 回读测试应用从 versionCode 11 升为 12；后续独立测试确认原路线库条目和 SharedPreferences 标记均保留。真实系统更新只针对隔离测试包，不使用候选测试包覆盖用户应用。
+- 通过主页面菜单打开更新页并访问真实 GitHub 更新源，实际状态为“发布页暂未提供应用内更新包，可稍后重试”，与当前 Release 没有 update.json 的事实一致。没有将未发布清单解释为“已经最新”。
+- 固定兼容私钥构建的非 debuggable release APK 验证通过；从实际 APK 生成 `app/build/outputs/updates/kegent-1.4.4.apk`、`update.json` 和摘要文件。证书 SHA-256 与已发布 1.3.1 一致。构建材料未上传；GitHub 签名 Secrets、代码/tag 推送及线上 Release 不在本轮已完成范围。
+- 新增 tag/手动发布工作流：签名环境变量缺失时不发布，证书/tag/包名/debuggable 不匹配时拒绝产物，先准备草稿资产再公开。脚本兼容 Android build-tools 36/37 的签名输出差异。步骤见 `docs/APP_UPDATE.md`。
+- 设备验证材料保存在 `app/build/reports/app-update-tests/`。初次失败的模拟器截图进程不作为功能结果；最终成功断言以 `apk-verification-tests-final.txt`、`after-system-upgrade.txt`、`update-entry-and-feed.txt` 以及系统安装前 XML 和升级后 PackageManager 回读为依据。
+- 当前蓝叠用户安装已保留数据覆盖更新为正式 `1.4.4` / versionCode 11；没有为生产包自动开启“允许安装应用”。隔离更新测试包及测试安装权限随卸载清理，测试用临时外来签名私钥已删除。普通 CI 改为不依赖私钥的 debug/单测/Lint/脚本测试；远端发布仍按文档单独操作。
+
 ## 2026-11-10：1.4.3 内置路线卡片与更新调研
 
 - 默认校区路线使用与自建路线相同的卡片组件，保留内置标记和“使用”操作，不提供管理/删除入口；顶部默认路线和导入 KML 两个按钮等宽并排。

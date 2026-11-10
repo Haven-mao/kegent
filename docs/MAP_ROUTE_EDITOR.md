@@ -1,4 +1,4 @@
-# 地图路线编辑（1.4.3）
+# 地图路线编辑（1.4.4）
 
 ## 入口与模式
 
@@ -80,7 +80,7 @@ $env:PATH = "$env:JAVA_HOME\bin;$env:PATH"
 .\gradlew.bat :app:exportDebugApk :app:testDebugUnitTest :app:lintDebug
 ```
 
-常规包路径：`app/build/outputs/apk/kegent/kegent.apk`。显示版本 `1.4.3-dev`，应用 ID `com.haven.kegent`，versionCode 10。
+常规调试包路径：`app/build/outputs/apk/kegent/kegent.apk`。调试版本 `1.4.4-dev`；正式更新包为 `app/build/outputs/updates/kegent-1.4.4.apk`，应用 ID `com.haven.kegent`，versionCode 11。
 
 纯 Java 测试覆盖：不同纬度、方向、起点的跑道长度及闭合，外道增量，手动插值端点，草稿参数往返，保存权威文件与镜像，旧 KML 兼容，未完成道路与断口禁止应用，修改锚点导致缓存失效，以及 Valhalla polyline6 的解码和失败响应。
 

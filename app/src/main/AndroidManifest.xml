@@ -8,6 +8,7 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <!-- OSM route-preview tiles load asynchronously and fall back offline. -->
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
     <!-- 获取粗略位置信息（网络、Wi-Fi） -->
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <!-- Android Q 开始允许前台和后台不同范围的位置访问 -->
@@ -73,6 +74,11 @@
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
         <activity android:name=".RouteLibraryActivity" android:exported="false" android:windowSoftInputMode="adjustResize" />
+        <activity android:name=".AppUpdateActivity" android:exported="false" />
+        <provider android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.updates" android:exported="false" android:grantUriPermissions="true">
+            <meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/update_file_paths" />
+        </provider>
 
     </application>
 

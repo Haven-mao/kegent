@@ -1,0 +1,82 @@
+name: Publish Android update
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing version tag to publish, for example v1.4.4
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.event.inputs.tag || github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    env:
+      RELEASE_TAG: ${{ github.event.inputs.tag || github.ref_name }}
+      KEGENT_STORE_PASSWORD: ${{ secrets.KEGENT_STORE_PASSWORD }}
+      KEGENT_KEY_ALIAS: ${{ secrets.KEGENT_KEY_ALIAS }}
+      KEGENT_KEY_PASSWORD: ${{ secrets.KEGENT_KEY_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.tag || github.ref_name }}
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: temurin
+          cache: gradle
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: android-actions/setup-android@v3
+      - name: Install Android SDK
+        run: sdkmanager 'platforms;android-36' 'build-tools;36.0.0'
+      - name: Load the existing compatible signing key
+        env:
+          SIGNING_KEY_BASE64: ${{ secrets.KEGENT_KEYSTORE_BASE64 }}
+        run: |
+          set -euo pipefail
+          test -n "$SIGNING_KEY_BASE64"
+          test -n "$KEGENT_STORE_PASSWORD"
+          test -n "$KEGENT_KEY_ALIAS"
+          test -n "$KEGENT_KEY_PASSWORD"
+          printf '%s' "$SIGNING_KEY_BASE64" | base64 --decode > "$RUNNER_TEMP/kegent-signing.jks"
+          chmod 600 "$RUNNER_TEMP/kegent-signing.jks"
+          echo "KEGENT_KEYSTORE_FILE=$RUNNER_TEMP/kegent-signing.jks" >> "$GITHUB_ENV"
+      - name: Build and validate
+        run: |
+          chmod +x gradlew
+          ./gradlew :app:testDebugUnitTest :app:lintDebug :app:assembleRelease
+          node --test scripts/create-update-release.test.mjs
+      - name: Generate the matching update manifest
+        run: |
+          node scripts/create-update-release.mjs \
+            --apk app/build/outputs/apk/release/app-release.apk \
+            --out app/build/outputs/updates \
+            --tag "$RELEASE_TAG" \
+            --base-url "https://github.com/$GITHUB_REPOSITORY/releases/download/$RELEASE_TAG" \
+            --notes-file "docs/releases/$RELEASE_TAG.md"
+      - name: Stage complete release assets then publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          if gh release view "$RELEASE_TAG" --json isDraft --jq .isDraft > "$RUNNER_TEMP/kegent-release-state" 2>/dev/null; then
+            test "$(cat "$RUNNER_TEMP/kegent-release-state")" = true
+          else
+            gh release create "$RELEASE_TAG" --verify-tag --draft --title "$RELEASE_TAG" --notes-file "docs/releases/$RELEASE_TAG.md"
+          fi
+          gh release upload "$RELEASE_TAG" app/build/outputs/updates/* --clobber
+          gh release edit "$RELEASE_TAG" --draft=false
+      - name: Remove temporary signing material
+        if: always()
+        run: rm -f "$RUNNER_TEMP/kegent-signing.jks"
