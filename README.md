@@ -26,7 +26,7 @@ kegent 是基于 [LangQi99/dlut-FakeRun](https://github.com/LangQi99/dlut-FakeRu
 
 1. 下载BlueStacks 5模拟器，可以从官方下载，或者通过下方给出的链接中的云盘下载
 
-2. 下载kegent，可以在github release（https://github\.com/Haven\-mao/kegent/releases/tag/v1\.3\.1）中下载，也可以通过给出的云盘链接中下载
+2. 下载kegent，可以在github release（https://github.com/Haven-mao/kegent/releases/tag/v2.0.0） 中下载，也可以通过给出的云盘链接中下载
 
 3. 下载keep apk，建议使用本人开发时使用的版本，该版本apk也在下方云盘链接中给出
 
