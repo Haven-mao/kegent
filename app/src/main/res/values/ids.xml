@@ -14,5 +14,7 @@
     <item name="workspace_right_scroll" type="id"/>
     <item name="current_route_selector" type="id"/>
     <item name="route_library_import" type="id"/>
+    <item name="route_library_default" type="id"/>
+    <item name="route_library_builtin" type="id"/>
     <item name="place_search_input" type="id"/>
 </resources>

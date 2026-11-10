@@ -39,11 +39,11 @@ public final class RouteLibraryActivity extends AppCompatActivity {
         com.google.android.material.button.MaterialButton back = Ui.button(this, "返回", false); back.setOnClickListener(v -> finish()); header.addView(back);
         TextView title = Ui.text(this, "已有路线", 20, true); LinearLayout.LayoutParams tp = new LinearLayout.LayoutParams(0, -2, 1); tp.setMarginStart(dp(12)); header.addView(title, tp); root.addView(header);
         com.google.android.material.button.MaterialButton defaultRoute = Ui.button(this, "使用默认路线", true);
-        defaultRoute.setOnClickListener(v -> chooseDefault()); Ui.add(root, defaultRoute, 10);
-        Ui.add(root, Ui.note(this, RouteRepository.DEFAULT_NAME), 4);
+        defaultRoute.setId(R.id.route_library_default);
+        defaultRoute.setOnClickListener(v -> chooseDefault());
         com.google.android.material.button.MaterialButton importRoute = Ui.button(this, "导入 KML 并保存", false); importRoute.setId(R.id.route_library_import);
         importRoute.setOnClickListener(v -> { if (!busy) importPicker.launch(new String[] {"application/vnd.google-earth.kml+xml", "application/xml", "text/xml", "application/octet-stream"}); });
-        Ui.add(root, importRoute, 10);
+        Ui.pair(root, defaultRoute, importRoute, 10);
         message = Ui.note(this, "正在读取已保存路线…"); message.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE); Ui.add(root, message, 8);
         ScrollView scroll = new ScrollView(this); entries = Ui.column(this); scroll.addView(entries); root.addView(scroll, new LinearLayout.LayoutParams(-1, 0, 1));
         reload();
@@ -62,22 +62,32 @@ public final class RouteLibraryActivity extends AppCompatActivity {
                 try (InputStream fallback = getResources().openRawResource(R.raw.dutpj_mutipoint)) { repository.preserveSelection(fallback, getSharedPreferences("workspace", MODE_PRIVATE).getString("route_name", "自定义路线")); }
                 String selected;
                 try (InputStream fallback = getResources().openRawResource(R.raw.dutpj_mutipoint)) { selected = repository.load(fallback, "自定义路线").name; }
+                RunRoute builtIn;
+                try (InputStream fallback = getResources().openRawResource(R.raw.dutpj_mutipoint)) { builtIn = RunRoute.readKml(fallback, RouteRepository.DEFAULT_NAME); }
                 List<RouteRepository.SavedRoute> saved = repository.listSaved();
                 ui(() -> {
-                    currentName = selected; entries.removeAllViews(); message.setText(saved.isEmpty() ? "还没有保存的路线，可导入 KML 或在地图中绘制保存" : "点击使用路线；右侧可重命名或移除");
+                    currentName = selected; entries.removeAllViews(); message.setText("点击使用路线；自建路线可重命名或移除");
+                    addRouteRow(builtIn.name, builtIn.lengthMeters, builtIn.size(), builtIn.closed,
+                            "内置路线", "使用", this::chooseDefault, this::chooseDefault, R.id.route_library_builtin);
                     for (RouteRepository.SavedRoute route : saved) addRoute(route);
                 });
             } catch (Exception e) { failure(e); }
         });
     }
     private void addRoute(RouteRepository.SavedRoute route) {
+        addRouteRow(route.name, route.meters, route.points, route.closed, "", "管理",
+                () -> choose(route.id), () -> manage(route), View.NO_ID);
+    }
+    private void addRouteRow(String name, double meters, int points, boolean closed, String label,
+                             String actionLabel, Runnable select, Runnable action, int id) {
         LinearLayout row = new LinearLayout(this); row.setGravity(Gravity.CENTER_VERTICAL); row.setPadding(dp(14), dp(10), dp(8), dp(10));
-        LinearLayout text = Ui.column(this); text.addView(Ui.text(this, route.name, 16, true));
-        Ui.add(text, Ui.note(this, String.format(Locale.CHINA, "%.2f 米 · %d 点 · %s%s", route.meters, route.points, route.closed ? "闭合" : "往返", route.name.equals(currentName) ? " · 当前使用" : "")), 6);
+        LinearLayout text = Ui.column(this); text.addView(Ui.text(this, name, 16, true));
+        Ui.add(text, Ui.note(this, String.format(Locale.CHINA, "%.2f 米 · %d 点 · %s%s%s", meters, points,
+                closed ? "闭合" : "往返", label.isEmpty() ? "" : " · " + label, name.equals(currentName) ? " · 当前使用" : "")), 6);
         row.addView(text, new LinearLayout.LayoutParams(0, -2, 1));
-        text.setOnClickListener(v -> choose(route.id)); text.setContentDescription("使用路线：" + route.name); text.setPadding(0, dp(6), dp(8), dp(6));
-        com.google.android.material.button.MaterialButton actions = Ui.button(this, "管理", false); actions.setOnClickListener(v -> manage(route)); row.addView(actions);
-        View card = Ui.card(this, row); card.setOnClickListener(v -> choose(route.id)); Ui.add(entries, card, 10);
+        text.setOnClickListener(v -> select.run()); text.setContentDescription("使用路线：" + name); text.setPadding(0, dp(6), dp(8), dp(6));
+        com.google.android.material.button.MaterialButton actions = Ui.button(this, actionLabel, false); actions.setOnClickListener(v -> action.run()); row.addView(actions);
+        View card = Ui.card(this, row); if (id != View.NO_ID) card.setId(id); card.setOnClickListener(v -> select.run()); Ui.add(entries, card, 10);
     }
     private void choose(String id) {
         if (!available()) return; busy = true;

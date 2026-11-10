@@ -1,5 +1,13 @@
 # 本地验证记录
 
+## 2026-11-10：1.4.3 内置路线卡片与更新调研
+
+- 默认校区路线使用与自建路线相同的卡片组件，保留内置标记和“使用”操作，不提供管理/删除入口；顶部默认路线和导入 KML 两个按钮等宽并排。
+- 独立 `.maptest` 应用的横屏与 900×1600 竖屏各 1 项界面回归通过，验证顶部按钮同行等宽、内置路线位于卡片中、无管理删除入口及使用默认路线后保留自建路线。设备尺寸已恢复 1920×1080 / 240 dpi。
+- `:app:exportDebugApk`、`:app:testDebugUnitTest`、`:app:lintDebug` 通过；74 项 JVM 测试，0 失败；Lint 0 错误、73 项非阻断告警。最终 `com.haven.kegent` 1.4.3-dev / versionCode 10 已在当前蓝叠保留数据覆盖安装并打开，安装前确认无定位服务运行，独立测试应用已清理。
+- 更新调研只读检查本地签名、Gradle、CI、官方 Android 文档及 GitHub Release。下载并只读解析 v1.3.1 发布 ZIP 中的 APK，确认包名及证书与本地交付兼容；未安装旧包、替换密钥、上传签名材料或发布版本。当前尚未接入应用内更新，旧版需要先手动安装一次带更新模块的版本。
+- 详情见 `docs/APP_UPDATE_FEASIBILITY.md`；路线列表截图和横竖屏结果位于 `app/build/reports/map-editor-1.4.3/`，发布 APK 的只读调研副本位于 `app/build/reports/app-update-research/`。
+
 ## 2026-11-10：1.4.2 路线库、独立滚动、搜索与绘制优化
 
 - 常规应用版本 `1.4.2-dev` / versionCode 9；`:app:exportDebugApk`、`:app:testDebugUnitTest`、`:app:lintDebug` 通过；74 项 JVM 测试，0 失败；Lint 0 错误、73 项非阻断告警。

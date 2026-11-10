@@ -74,6 +74,27 @@ public final class RouteLibrarySmokeTest {
         onView(withText("更多")).perform(click()); onView(withText("恢复上次草稿")).perform(click());
         onView(withText("保存并应用")).check(matches(isEnabled())); capture("empty-modes-restored-draft");
     }
+    @Test public void builtInRouteSharesCardLayoutAndTopButtonsShareOneRow() throws Exception {
+        RunRoute custom = new RunRoute("自己的路线", Arrays.asList(new RunRoute.Point(40, 122), new RunRoute.Point(40.001, 122)));
+        repository.saveAndSelect(custom, null); open(); onView(withId(R.id.current_route_selector)).perform(click());
+        waitFor(withId(R.id.route_library_builtin), 5000);
+        final int[] defaultBounds = new int[3];
+        onView(withId(R.id.route_library_default)).check((view, error) -> {
+            if (error != null) throw error; int[] position = new int[2]; view.getLocationOnScreen(position);
+            defaultBounds[0] = position[0]; defaultBounds[1] = position[1]; defaultBounds[2] = view.getWidth();
+        });
+        onView(withId(R.id.route_library_import)).check((view, error) -> {
+            if (error != null) throw error; int[] position = new int[2]; view.getLocationOnScreen(position);
+            assertEquals(defaultBounds[1], position[1]); assertTrue(position[0] > defaultBounds[0]);
+            assertTrue(Math.abs(defaultBounds[2] - view.getWidth()) <= 1);
+        });
+        onView(withText(RouteRepository.DEFAULT_NAME)).check(matches(isDescendantOfA(withId(R.id.route_library_builtin))));
+        onView(allOf(withText("使用"), isDescendantOfA(withId(R.id.route_library_builtin)))).check(matches(isDisplayed()));
+        onView(allOf(withText("管理"), isDescendantOfA(withId(R.id.route_library_builtin)))).check(androidx.test.espresso.assertion.ViewAssertions.doesNotExist());
+        capture("route-library-builtin");
+        onView(withId(R.id.route_library_builtin)).perform(click()); waitFor(withText(RouteRepository.DEFAULT_NAME), 5000);
+        assertEquals(1, repository.listSaved().size());
+    }
     @Test public void importedKmlCanBeNamedAndUsedFromSavedList() throws Exception {
         File fixture = new File(context.getCacheDir(), "library-import-test.kml");
         RunRoute route = new RunRoute("fixture", Arrays.asList(new RunRoute.Point(40.68, 122.11), new RunRoute.Point(40.681, 122.111)));
