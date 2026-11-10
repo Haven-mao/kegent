@@ -14,12 +14,6 @@ kegent 是基于 [LangQi99/dlut-FakeRun](https://github.com/LangQi99/dlut-FakeRu
 | 系统要求 | Android 8.0 及以上（API 26） |
 | 技术栈 | Java、Android Views、Material、MapLibre Native、Gradle |
 
-## 界面预览
-
-| 实时跑步 | 历史补跑 | Keep 数据同步（已上传） |
-| :---: | :---: | :---: |
-| <img src="image/Snipaste_2026-10-19_12-59-13.png" alt="kegent 实时跑步页面：路线选择、速度与自然配速配置" width="260"> | <img src="image/Snipaste_2026-10-19_13-00-02.png" alt="kegent 历史补跑页面：起止时间、平均配速、Keep 连接与 GPX 导出" width="260"> | <img src="image/Snipaste_2026-10-19_13-00-34.png" alt="Keep 运动数据同步页面中的已上传记录列表" width="260"> |
-
 # 如何使用kegent补填校园跑（2\.0\.0版本）
 
 # 程序与环境准备
