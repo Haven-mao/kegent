@@ -1,5 +1,15 @@
 # 本地验证记录
 
+## 2026-11-10：Keep 本地记录目录自动初始化
+
+- 已安装 Keep 8.7.30 / 49337 的反编译代码确认：`iw1.b` (`LogFileStorage`) 与 `iw1.c` (`LogFileV2Storage`) 在获取记录文件路径时按需创建 `files/local_logs`，该目录不是连接检查的既定前提。
+- 使用当前已提交源码及本次修复的独立副本构建，避免混入工作区中同时进行的地图编辑器改动。`:app:testDebugUnitTest`、`:app:lintDebug`、`:app:exportDebugApk` 通过；29 项 JVM 测试，0 失败；Lint 0 错误、53 项告警。
+- 蓝叠 5 / Android 9 上通过独立 `app_process` 运行生产环境的 `KeepLogDirectory` 和 `RootShell`，10 项目录回归通过：缺失目录创建及 UID/GID/0700 校验、已有目录属性修复且保留子文件内容和属性、重复调用、初始化失败提示及重试、普通文件冲突、目录符号链接、悬空符号链接、父目录缺失、带空格/引号路径、非法 UID/GID 拒绝。
+- 目录回归仅操作 `/data/local/tmp/kegent-keep-directory-*` 下的临时夹具，使用实际 Keep UID/GID 设置属主；结束后已清理夹具和测试运行包，没有安装或卸载应用，也没有创建 Keep 运动记录或写入其数据库。
+- 蓝叠测试环境的 SELinux 为 Disabled；`restorecon` 调用已执行，但 SELinux Enforcing 真机上的标签效果及真实云端上传不属于本次验证结果。
+
+## 2026-10-19 验证记录
+
 日期：2026-10-19。当前来源修复版本 1.3.1-dev；下文另列 1.3.0 及更早版本的历史验证。测试环境：蓝叠 Pie64 / Android 9；构建环境：JDK 21、Gradle 8.14.3、AGP 8.13.0、Android SDK 36。
 
 ## 1.3.1 来源修复验证

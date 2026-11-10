@@ -17,6 +17,7 @@ public final class KeepBridge {
     public static final String PACKAGE = "com.gotokeep.keep";
     private static final String DATA = "/data/user/0/" + PACKAGE;
     private static final String DB = DATA + "/databases/summary_log_database.db";
+    private static final String LOG_DIRECTORY = DATA + "/files/local_logs";
     private final Context context;
 
     public static final class Session {
@@ -120,7 +121,7 @@ public final class KeepBridge {
                         + ";\n"
                         + KeepRecordBuilder.insertSql(run, actual.userId, id)
                         + "\nCOMMIT;\n");
-        String dest = DATA + "/files/local_logs/local_log_" + id + "_v2",
+        String dest = LOG_DIRECTORY + "/local_log_" + id + "_v2",
                 stage = dest + ".kegent-" + System.nanoTime();
         String script =
                 "set -eu\n"
@@ -139,9 +140,7 @@ public final class KeepBridge {
                         + " "
                         + RootShell.quote(".backup " + RootShell.quote(backup.getAbsolutePath()))
                         + "\n"
-                        + "test -d "
-                        + RootShell.quote(DATA + "/files/local_logs")
-                        + "\n"
+                        + KeepLogDirectory.prepareScript(LOG_DIRECTORY, owner)
                         + "cp "
                         + RootShell.quote(json.getAbsolutePath())
                         + " "

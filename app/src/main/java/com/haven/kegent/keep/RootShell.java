@@ -42,6 +42,8 @@ final class RootShell {
                     throw new IOException("该记录已存在，请到 Keep 中查看待同步记录");
                 if (errors.contains("CHECK constraint failed"))
                     throw new IOException("此时间段与本地待同步记录重叠");
+                if (errors.contains("KEGENT_LOG_DIRECTORY"))
+                    throw new IOException("无法准备 Keep 本地记录目录，请检查 Root 授权、存储空间和目录权限");
                 throw new IOException(
                         "Keep 接入未完成："
                                 + (errors.contains("Permission denied")
