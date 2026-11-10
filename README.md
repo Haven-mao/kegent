@@ -10,7 +10,7 @@ kegent 是基于 [LangQi99/dlut-FakeRun](https://github.com/LangQi99/dlut-FakeRu
 | --- | --- |
 | 应用名称 | `kegent` |
 | 应用 ID / 源码包名 | `com.haven.kegent` |
-| 当前版本 | `1.4.5`，调试构建为 `1.4.5-dev` |
+| 当前版本 | `2.0.0`，调试构建为 `2.0.0-dev` |
 | 系统要求 | Android 8.0 及以上（API 26） |
 | 技术栈 | Java、Android Views、Material、MapLibre Native、Gradle |
 

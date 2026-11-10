@@ -55,17 +55,17 @@ node --test scripts/create-update-release.test.mjs
 node scripts/create-update-release.mjs `
   --apk app/build/outputs/apk/release/app-release.apk `
   --out app/build/outputs/updates `
-  --tag v1.4.4 `
-  --base-url https://github.com/Haven-mao/kegent/releases/download/v1.4.4 `
-  --notes-file docs/releases/v1.4.4.md `
+  --tag v2.0.0 `
+  --base-url https://github.com/Haven-mao/kegent/releases/download/v2.0.0 `
+  --notes-file docs/releases/v2.0.0.md `
   --sdk D:/Dev/Android/sdk
 ```
 
 脚本用 aapt 和 apksigner 检查真实产物，然后生成：
 
-- `kegent-1.4.4.apk`：与旧安装兼容签名的非 debuggable 安装包。
+- `kegent-2.0.0.apk`：与旧安装兼容签名的非 debuggable 安装包。
 - `update.json`：从产物读取的包名、版本、最低系统，实际大小与 SHA-256，以及更新说明。
-- `kegent-1.4.4.apk.sha256`：供独立核对。
+- `kegent-2.0.0.apk.sha256`：供独立核对。
 
 脚本拒绝包名、签名和 tag 不一致的产物；默认拒绝 debuggable APK。`--allow-debug` 仅用于本地检查，不用于正式发布工作流。脚本支持 Android build-tools 36/37 的签名输出格式。
 

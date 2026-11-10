@@ -21,8 +21,8 @@ android {
         applicationId = "com.haven.kegent"
         minSdk = 26
         targetSdk = 34
-        versionCode = 12
-        versionName = "1.4.5"
+        versionCode = 13
+        versionName = "2.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
