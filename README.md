@@ -129,11 +129,12 @@ kegent 是基于 [LangQi99/dlut-FakeRun](https://github.com/LangQi99/dlut-FakeRu
 
 完成以上操作之后，在手机keep上你就会发现记录已经补上去了
 
-![Image](https://internal-api-drive-stream.feishu.cn/space/api/box/stream/download/authcode/?code=YjllODA1ZDEyNjgwMjAzODcwMzg4NTIyMmVmZGRlYjhfNWFmMDVkMzA5NjQwNjk4YmVhZDFjODYxMzhjODE4NmZfSUQ6NzY5OTEwMjc3NjI0ODY1MDc4N18xNzk0MzE0MzkzOjE3OTQ0MDA3OTNfVjM)
+<img width="2376" height="1337" alt="f03a6991ce381890e163361f1aec55c2" src="https://github.com/user-attachments/assets/c5445142-3ce5-47ed-80ed-cab7dced070d" />
 
-![Image](https://internal-api-drive-stream.feishu.cn/space/api/box/stream/download/authcode/?code=ZjQ1MGRhZTQyMDFhYmY0Y2Q2OTEwMTcxMTQ3MjkyNmJfYzVjNWRlZGQ3MGQzZDBhZWQyMmRkMDNmYWVjNDYwNDBfSUQ6NzY5OTEwMzE5MTI2MjIwMzE1OF8xNzk0MzE0MzkzOjE3OTQ0MDA3OTNfVjM)
 
-![Image](https://internal-api-drive-stream.feishu.cn/space/api/box/stream/download/authcode/?code=ZTE3Y2JlM2JjM2NiMGFkOTFmMGExNzI5NGUzODk5NWZfZDI2MmRmMWZkZGE3ODI4ODY3Yzc2Zjk4ZGE5Yzg2MTJfSUQ6NzY5OTEwMzUzMjU0NDg1NTAzMV8xNzk0MzE0MzkzOjE3OTQ0MDA3OTNfVjM)
+<img width="2376" height="1337" alt="1ba6cddd082cf082494b0b74e943371a" src="https://github.com/user-attachments/assets/65d694e4-1af7-47f4-85c7-bdd77d0fa19b" />
+
+<img width="2376" height="1337" alt="0bf6653e74ae1e24c915638c753781c4" src="https://github.com/user-attachments/assets/92ee41aa-6120-45b8-aa23-83ddb8c0a90b" />
 
 ![Image](https://internal-api-drive-stream.feishu.cn/space/api/box/stream/download/authcode/?code=ZGQ1MjcxNTk5MzRjZTRmY2Y4M2NmZWU0OGNiZTMyNzlfYjA0YmM2M2QzMTFkZjMwNjdjOTZkMmU1MDA3YTgzYjNfSUQ6NzY5OTEwMzg3NTk5MDcwMzExMF8xNzk0MzE0MzkzOjE3OTQ0MDA3OTNfVjM)
 
