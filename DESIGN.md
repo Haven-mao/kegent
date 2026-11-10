@@ -214,7 +214,7 @@ The footer uses (20 dp) horizontal, (8 dp) top, and (12 dp) bottom padding. Its 
 - The top bar keeps `实时跑步 / 历史补跑` beside the title on wide screens and in the immediately following row on phones. `使用说明` sits directly before the 76 × 48 dp day/night control.
 - The original 36 dp artwork is clipped to a 10 dp rounded square without changing its pixels. `DayNightToggleView` is a native Canvas component that keeps the 76 × 42 dp capsule, three halos, two clouds, six four-point stars, three craters, 650 ms motion, and accessible switch label from the supplied day-night-toggle specification.
 - `ui_background` resolves to `#121212` in `values-night`; the theme transition handles `uiMode` in place so a theme change does not expose a black recreation frame.
-- `RoutePreviewView` projects KML WGS84 points with Web Mercator, loads OpenStreetMap tiles asynchronously with a seven-day cache and attribution, and keeps the block/park/water canvas as a deterministic offline fallback. The preview never claims that this fallback is geographic imagery, and Keep's own Street layer remains authoritative for saved records.
+- `RoutePreviewView` uses a native MapLibre MapView and real map tiles, sharing configurable styles with the full-screen editor. A separate route overlay remains available while tiles load. Network failures show an explicit message; no decorative streets, parks or water are generated.
 
 **The Visible Run Rule.** Switching tabs must preserve the active run's status, distance/time, progress, and pause/resume/end controls. A blocked history action explains its state with “结束后补跑”.
 
@@ -260,7 +260,7 @@ The native `TabLayout` contains “实时跑步” and “历史补跑”. The n
 
 ### Route Preview and Progress
 
-`RoutePreviewView` draws the selected KML route geometry on a tonal canvas; it does not show map tiles or invented roads. It centers the geometry with a maximum inset of (28 dp), limited to (16%) of the smaller canvas dimension. The full route uses the outline color, and traveled geometry uses the accent, with a (3 dp) stroke. At zero distance the full route is accent-colored. Its accessible description names the route, point count, and approximate length.
+`RoutePreviewView` embeds a lifecycle-managed native MapView with real geographic tiles. The selected WGS84 geometry is drawn independently above it in the accent color with a surface halo. The moving location marker follows route distance. The map fits the route bounds with a 26 dp inset; phone previews use the full card width and 190 dp height, and wide layouts use 240 dp height. Loading/error copy can be tapped to retry the real map. The full-screen editor uses the same map service settings and numbered draggable handles.
 
 The canvas remains a route overview. Help directs users to Keep record details → Fullscreen → Layers → tap the Street thumbnail → confirm; tapping the text alone may not trigger the layer. Hide map shows a flat background. New history handoffs adapt standard GPS/WGS84 KML coordinates to Keep's GCJ-02 chain, while GPX retains GPS coordinates. Existing cloud records are not rewritten, and alignment of a newly converted cloud record has not been independently verified.
 

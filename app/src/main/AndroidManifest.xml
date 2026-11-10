@@ -68,6 +68,11 @@
             android:configChanges="uiMode|screenSize|orientation"
             android:windowSoftInputMode="adjustResize" />
 
+        <activity
+            android:name=".RouteEditorActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
     </application>
 
 </manifest>

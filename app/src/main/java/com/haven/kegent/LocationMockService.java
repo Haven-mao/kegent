@@ -17,9 +17,8 @@ import androidx.core.app.NotificationCompat;
 
 import com.haven.kegent.core.RunEngine;
 import com.haven.kegent.core.RunRoute;
+import com.haven.kegent.route.RouteRepository;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.Locale;
 
@@ -87,12 +86,8 @@ public class LocationMockService extends Service {
                 if (engine.snapshot().active()) return START_NOT_STICKY;
                 startForeground(31, notification());
                 lastError = "";
-                File selected = new File(getFilesDir(), "selected-route.kml");
-                try (InputStream stream =
-                        selected.exists()
-                                ? new FileInputStream(selected)
-                                : getResources().openRawResource(R.raw.dutpj_mutipoint)) {
-                    activeRoute = RunRoute.readKml(stream, intent.getStringExtra("route_name"));
+                try (InputStream stream = getResources().openRawResource(R.raw.dutpj_mutipoint)) {
+                    activeRoute = new RouteRepository(getFilesDir()).load(stream, intent.getStringExtra("route_name"));
                 }
                 double speed = intent.getDoubleExtra("speed", 3);
                 int repeats = intent.getIntExtra("repeats", 15);

@@ -45,6 +45,7 @@ import com.haven.kegent.keep.KeepBridge;
 import com.haven.kegent.ui.DayNightToggleView;
 import com.haven.kegent.ui.RoutePreviewView;
 import com.haven.kegent.ui.Ui;
+import com.haven.kegent.route.RouteRepository;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -72,7 +73,7 @@ public class FakeGPSActivity extends AppCompatActivity {
             connection,
             reviewText,
             error;
-    private MaterialButton primary, toggle, stop, browse, reset, connect, export;
+    private MaterialButton primary, toggle, stop, browse, reset, connect, export, drawRoute;
     private MaterialSwitch liveNatural, historyNatural;
     private DayNightToggleView themeToggle;
     private RoutePreviewView routeView;
@@ -97,6 +98,10 @@ public class FakeGPSActivity extends AppCompatActivity {
     private final ActivityResultLauncher<String[]> routePicker =
             registerForActivityResult(
                     new ActivityResultContracts.OpenDocument(), this::importRoute);
+    private final ActivityResultLauncher<Intent> routeEditor =
+            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+                if (result.getResultCode() == RESULT_OK) loadRoute();
+            });
     private final ActivityResultLauncher<String> permissions =
             registerForActivityResult(
                     new ActivityResultContracts.RequestPermission(),
@@ -207,25 +212,10 @@ public class FakeGPSActivity extends AppCompatActivity {
         routeName = Ui.text(this, "正在读取路线", 19, true);
         routeDetails = Ui.note(this, "KML 路线将在这里显示");
         routeView = new RoutePreviewView(this);
-        if (wide) {
-            Ui.add(left, routeName, 0);
-            Ui.add(left, routeDetails, 6);
-            LinearLayout.LayoutParams previewParams = new LinearLayout.LayoutParams(-1, dp(240));
-            previewParams.topMargin = dp(18);
-            left.addView(routeView, previewParams);
-        } else {
-            LinearLayout summary = new LinearLayout(this);
-            summary.setGravity(Gravity.CENTER_VERTICAL);
-            summary.addView(routeView, new LinearLayout.LayoutParams(dp(108), dp(100)));
-            LinearLayout routeInfo = Ui.column(this);
-            routeName.setTextSize(17);
-            Ui.add(routeInfo, routeName, 0);
-            Ui.add(routeInfo, routeDetails, 8);
-            LinearLayout.LayoutParams infoParams = new LinearLayout.LayoutParams(0, -2, 1);
-            infoParams.setMarginStart(dp(14));
-            summary.addView(routeInfo, infoParams);
-            left.addView(summary);
-        }
+        Ui.add(left, routeName, 0);
+        Ui.add(left, routeDetails, 6);
+        LinearLayout.LayoutParams previewParams = new LinearLayout.LayoutParams(-1, dp(wide ? 240 : 190));
+        previewParams.topMargin = dp(12); left.addView(routeView, previewParams);
         browse = Ui.button(this, "选择路线", false);
         browse.setOnClickListener(
                 v ->
@@ -239,15 +229,22 @@ public class FakeGPSActivity extends AppCompatActivity {
         reset = Ui.button(this, "默认路线", false);
         reset.setOnClickListener(
                 v -> {
-                    if (!new File(getFilesDir(), "selected-route.kml").exists()) {
-                        loadRoute();
-                        return;
-                    }
-                    new File(getFilesDir(), "selected-route.kml").delete();
-                    prefs.edit().remove("route_name").apply();
-                    loadRoute();
+                    worker.execute(() -> {
+                        try (InputStream in = getResources().openRawResource(R.raw.dutpj_mutipoint)) {
+                            RunRoute defaultRoute = RunRoute.readKml(in, "DUTPJ 操场路线");
+                            new RouteRepository(getFilesDir()).select(defaultRoute, null);
+                            prefs.edit().remove("route_name").apply();
+                            onUi(() -> useRoute(defaultRoute));
+                        } catch (Exception e) { onUi(() -> showError("默认路线恢复失败，请重试")); }
+                    });
                 });
         Ui.pair(left, browse, reset, 12);
+        drawRoute = Ui.button(this, "地图绘制 · 道路 / 操场", true);
+        drawRoute.setOnClickListener(v -> {
+            if (!LocationMockService.latest.active() && !busy)
+                routeEditor.launch(new Intent(this, RouteEditorActivity.class));
+        });
+        Ui.add(left, drawRoute, 6);
         status = Ui.text(this, "准备就绪", 16, true);
         status.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);
         metrics = Ui.note(this, "选择路线并设置速度后开始");
@@ -600,18 +597,9 @@ public class FakeGPSActivity extends AppCompatActivity {
         worker.execute(
                 () -> {
                     try {
-                        File selected = new File(getFilesDir(), "selected-route.kml");
                         RunRoute r;
-                        try (InputStream in =
-                                selected.exists()
-                                        ? new FileInputStream(selected)
-                                        : getResources().openRawResource(R.raw.dutpj_mutipoint)) {
-                            r =
-                                    RunRoute.readKml(
-                                            in,
-                                            selected.exists()
-                                                    ? prefs.getString("route_name", "自定义路线")
-                                                    : "DUTPJ 操场路线");
+                        try (InputStream in = getResources().openRawResource(R.raw.dutpj_mutipoint)) {
+                            r = new RouteRepository(getFilesDir()).load(in, prefs.getString("route_name", "自定义路线"));
                         }
                         RunRoute loaded = r;
                         onUi(() -> useRoute(loaded));
@@ -635,6 +623,7 @@ public class FakeGPSActivity extends AppCompatActivity {
                         route.size(),
                         route.closed ? "闭合路线" : "往返路线"));
         routeView.setRoute(route);
+        renderSignature = null;
         invalidateHistory();
         updatePace();
         refreshLive();
@@ -673,10 +662,8 @@ public class FakeGPSActivity extends AppCompatActivity {
                         try (InputStream input = new FileInputStream(staged)) {
                             loaded = RunRoute.readKml(input, name);
                         }
-                        java.nio.file.Files.move(
-                                staged.toPath(),
-                                new File(getFilesDir(), "selected-route.kml").toPath(),
-                                java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                        new RouteRepository(getFilesDir()).select(loaded, null);
+                        staged.delete();
                         prefs.edit().putString("route_name", name).apply();
                         onUi(() -> useRoute(loaded));
                     } catch (Exception e) {
@@ -831,6 +818,7 @@ public class FakeGPSActivity extends AppCompatActivity {
             compactStatus.setVisibility(!history || active ? View.VISIBLE : View.GONE);
         progress.setVisibility(!history || active ? View.VISIBLE : View.GONE);
         browse.setEnabled(!active && !busy);
+        drawRoute.setEnabled(!active && !busy);
         reset.setEnabled(!active && !busy);
         for (TextInputLayout f : new TextInputLayout[] {repeats, interval, altitude, accuracy})
             f.setEnabled(!active && !busy);
@@ -1127,13 +1115,14 @@ public class FakeGPSActivity extends AppCompatActivity {
         new MaterialAlertDialogBuilder(this)
                 .setTitle("使用 kegent")
                 .setMessage(
-                        "实时跑步：选择 KML 路线并配置速度。真机需在开发者选项中将 kegent 设为模拟定位应用。运行中可暂停、继续和调速。\n\n"
+                        "路线：可导入 KML，或打开“地图绘制”直接选点。道路模式按步行路网规划；操场模式可调整跑道形状和起跑点；手动模式支持曲线平滑。\n\n"
+                            + "实时跑步：选择路线并配置速度。真机需在开发者选项中将 kegent 设为模拟定位应用。运行中可暂停、继续和调速。\n\n"
                             + "历史补跑：单次选择过去的起止时间与配速，预览后交给 Keep。当前接入支持已提供 Root 的设备及 Keep"
                             + " 8.7.30。也可单独导出 GPX。\n\n"
                             + "起止时间可选到秒。自然配速在前 1 km 略快，后段仅有平滑小幅变化；关闭开关即可匀速。\n\n"
                             + "Keep 地图底图：记录详情 → 全屏 → 图层，然后点击 Street 上方的地图缩略图（不要只点文字）并确认。若选择“隐藏地图”或"
                             + " Gotham，只会显示纯色/深色背景和轨迹。\n\n"
-                             + "路线预览优先加载 OpenStreetMap 在线街区瓦片，并在画面右下角保留署名；无网络或瓦片失败时回退到离线街区风格底图。\n\n"
+                             + "主页面和编辑页均使用真实地图。网络不可用时保留轨迹并提示底图加载失败；可点击预览提示重试，或在地图编辑的服务设置中更换底图。\n\n"
                             + "路线请使用标准 GPS/WGS84 KML。交给 Keep 时会适配国内地图坐标，GPX 保留 GPS 坐标。\n\n"
                             + "定位精度是位置误差半径，不是加速度。")
                 .setPositiveButton("知道了", null)
@@ -1171,6 +1160,7 @@ public class FakeGPSActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        renderSignature = null;
         handler.removeCallbacks(update);
         handler.post(update);
     }
@@ -1193,6 +1183,11 @@ public class FakeGPSActivity extends AppCompatActivity {
                     hWeight
                 }) if (f != null) e.putString((String) f.getTag(), Ui.value(f));
         e.apply();
+    }
+
+    @Override
+    public void onLowMemory() {
+        super.onLowMemory(); if (routeView != null) routeView.onLowMemory();
     }
 
     @Override
