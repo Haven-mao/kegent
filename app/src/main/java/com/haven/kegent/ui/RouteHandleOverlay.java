@@ -79,11 +79,17 @@ public final class RouteHandleOverlay extends View {
         for (int i = 0; i < Math.min(handles.size(), handlePositions.size()); i++) {
             Handle h = handles.get(i); PointF at = handlePositions.get(i);
             paint.setStyle(Paint.Style.FILL); paint.setColor(Ui.color(getContext(), R.color.ui_surface));
-            canvas.drawCircle(at.x, at.y, dp(i == selected ? 15 : 12), paint);
-            paint.setStyle(Paint.Style.STROKE); paint.setStrokeWidth(dp(i == selected ? 3 : 2));
-            paint.setColor(Ui.color(getContext(), R.color.ui_accent)); canvas.drawCircle(at.x, at.y, dp(i == selected ? 15 : 12), paint);
-            paint.setStyle(Paint.Style.FILL); paint.setTextSize(dp(11)); paint.setTypeface(Typeface.DEFAULT_BOLD); paint.setTextAlign(Paint.Align.CENTER);
-            canvas.drawText(h.label, at.x, at.y - (paint.ascent() + paint.descent()) / 2, paint);
+            canvas.drawCircle(at.x, at.y, dp(i == selected ? 8 : 6), paint);
+            paint.setStyle(Paint.Style.STROKE); paint.setStrokeWidth(dp(i == selected ? 2 : 1.5f));
+            paint.setColor(Ui.color(getContext(), R.color.ui_accent)); canvas.drawCircle(at.x, at.y, dp(i == selected ? 8 : 6), paint);
+            if (i == selected || handles.size() <= 30) {
+                paint.setStyle(Paint.Style.FILL); paint.setTextSize(dp(9)); paint.setTypeface(Typeface.DEFAULT_BOLD); paint.setTextAlign(Paint.Align.CENTER);
+                String label = h.label;
+                if (label.length() > 2) {
+                    paint.setTextAlign(Paint.Align.LEFT);
+                    canvas.drawText(label, at.x + dp(10), at.y - dp(7), paint);
+                } else canvas.drawText(label, at.x, at.y - (paint.ascent() + paint.descent()) / 2, paint);
+            }
         }
     }
     @Override public boolean onTouchEvent(MotionEvent e) {

@@ -22,6 +22,7 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.button.MaterialButtonToggleGroup;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.materialswitch.MaterialSwitch;
 import com.google.android.material.tabs.TabLayout;
@@ -29,6 +30,7 @@ import com.google.android.material.textfield.TextInputLayout;
 import com.haven.kegent.core.RunRoute;
 import com.haven.kegent.route.*;
 import com.haven.kegent.ui.RouteHandleOverlay;
+import com.haven.kegent.ui.RouteDrawOverlay;
 import com.haven.kegent.ui.Ui;
 import com.haven.kegent.ui.RealMapStyle;
 import org.json.*;
@@ -44,6 +46,7 @@ import java.util.concurrent.*;
 
 /** Native, WGS84 route editor. Drafts never replace the selected route until Apply succeeds. */
 public final class RouteEditorActivity extends AppCompatActivity implements RouteHandleOverlay.Listener {
+    private enum InputMode { POINT, DRAW, MOVE }
     private static final String DEFAULT_STYLE = RealMapStyle.DEFAULT_STYLE;
     private final Handler main = new Handler(Looper.getMainLooper());
     private final ExecutorService network = Executors.newSingleThreadExecutor(), storage = Executors.newSingleThreadExecutor();
@@ -61,8 +64,12 @@ public final class RouteEditorActivity extends AppCompatActivity implements Rout
     private MapLibreMap map;
     private RealMapStyle realMapStyle;
     private RouteHandleOverlay overlay;
+    private RouteDrawOverlay drawing;
     private TextView status, hint, mapNotice;
-    private MaterialButton save, back, undoButton, redoButton, delete, segment, track, start;
+    private MaterialButton save, back, undoButton, redoButton, delete, segment, track, start, retry;
+    private MaterialButtonToggleGroup inputModes;
+    private InputMode inputMode = InputMode.POINT;
+    private boolean wideTools;
     private MaterialSwitch closed, smooth;
     private TabLayout modes;
     private Future<?> planningTask;
@@ -77,6 +84,7 @@ public final class RouteEditorActivity extends AppCompatActivity implements Rout
     @Override protected void onCreate(Bundle state) {
         super.onCreate(state);
         prefs = getSharedPreferences("route_editor", MODE_PRIVATE);
+        try { inputMode = InputMode.valueOf(prefs.getString("input_mode", "POINT")); } catch (IllegalArgumentException ignored) { }
         repository = new RouteRepository(getFilesDir());
         MapLibre.getInstance(this);
         buildScreen(state);
@@ -116,16 +124,22 @@ public final class RouteEditorActivity extends AppCompatActivity implements Rout
     }
 
     private void buildScreen(Bundle state) {
+        wideTools = getResources().getConfiguration().screenWidthDp >= 800;
         LinearLayout root = Ui.column(this); root.setBackgroundColor(Ui.color(this, R.color.ui_background)); setContentView(root);
-        LinearLayout header = row(); header.setPadding(dp(12), dp(4), dp(12), 0);
+        LinearLayout header = row(); header.setPadding(dp(10), dp(2), dp(10), dp(2));
         back = button("返回", v -> leave()); header.addView(back);
-        TextView title = Ui.text(this, "地图绘制", 20, true); LinearLayout.LayoutParams titleParams = new LinearLayout.LayoutParams(0, -2, 1);
+        TextView title = Ui.text(this, "地图绘制", 18, true);
+        LinearLayout.LayoutParams titleParams = wideTools ? new LinearLayout.LayoutParams(-2, -2) : new LinearLayout.LayoutParams(0, -2, 1);
         titleParams.setMarginStart(dp(12)); header.addView(title, titleParams);
         header.addView(button("更多", v -> more())); root.addView(header);
         modes = new TabLayout(this); modes.setTabTextColors(Ui.color(this, R.color.ui_muted), Ui.color(this, R.color.ui_accent));
         modes.setSelectedTabIndicatorColor(Ui.color(this, R.color.ui_accent));
         for (String name : new String[] {"沿道路", "操场", "手动"}) modes.addTab(modes.newTab().setText(name));
-        root.addView(modes, new LinearLayout.LayoutParams(-1, dp(48)));
+        modes.setTabMode(TabLayout.MODE_FIXED);
+        if (wideTools) {
+            LinearLayout.LayoutParams navigation = new LinearLayout.LayoutParams(dp(252), dp(48)); navigation.setMarginStart(dp(24));
+            header.addView(modes, 2, navigation); header.addView(new View(this), 3, new LinearLayout.LayoutParams(0, 1, 1));
+        } else root.addView(modes, new LinearLayout.LayoutParams(-1, dp(44)));
         modes.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override public void onTabSelected(TabLayout.Tab tab) {
                 if (binding || loading) return;
@@ -141,27 +155,41 @@ public final class RouteEditorActivity extends AppCompatActivity implements Rout
             @Override public void onTabUnselected(TabLayout.Tab tab) { }
             @Override public void onTabReselected(TabLayout.Tab tab) { }
         });
-        hint = Ui.note(this, "正在恢复草稿…"); hint.setPadding(dp(16), dp(5), dp(16), dp(5)); root.addView(hint);
-        FrameLayout frame = new FrameLayout(this); root.addView(frame, new LinearLayout.LayoutParams(-1, 0, 1));
+        hint = Ui.note(this, "正在恢复草稿…"); hint.setTextSize(12);
+        LinearLayout workspace = new LinearLayout(this); workspace.setOrientation(wideTools ? LinearLayout.HORIZONTAL : LinearLayout.VERTICAL);
+        root.addView(workspace, new LinearLayout.LayoutParams(-1, 0, 1));
+        FrameLayout frame = new FrameLayout(this);
+        workspace.addView(frame, wideTools ? new LinearLayout.LayoutParams(0, -1, 1) : new LinearLayout.LayoutParams(-1, 0, 1));
         mapView = new MapView(this, MapLibreMapOptions.createFromAttributes(this).textureMode(true));
+        mapView.setId(R.id.editor_map);
         mapView.onCreate(state); frame.addView(mapView, new FrameLayout.LayoutParams(-1, -1));
         GestureDetector taps = new GestureDetector(this, new GestureDetector.SimpleOnGestureListener() {
             @Override public boolean onDown(MotionEvent event) { return true; }
             @Override public boolean onSingleTapUp(MotionEvent event) {
-                if (map != null && !loading && !saving) {
+                if (map != null && !loading && !saving && (draft.mode == RouteDraft.Mode.TRACK || inputMode == InputMode.POINT)) {
                     mapClick(point(map.getProjection().fromScreenLocation(new PointF(event.getX(), event.getY()))), false);
                     mapView.performClick();
                 }
                 return true;
             }
             @Override public void onLongPress(MotionEvent event) {
-                if (map != null && !loading && !saving)
+                if (map != null && !loading && !saving && (draft.mode == RouteDraft.Mode.TRACK || inputMode == InputMode.POINT))
                     mapClick(point(map.getProjection().fromScreenLocation(new PointF(event.getX(), event.getY()))), true);
             }
         });
         taps.setOnDoubleTapListener(null);
-        mapView.setOnTouchListener((view, event) -> { taps.onTouchEvent(event); return false; });
+        mapView.setOnTouchListener((view, event) -> {
+            if (draft.mode == RouteDraft.Mode.TRACK || inputMode == InputMode.POINT) taps.onTouchEvent(event);
+            return false;
+        });
         overlay = new RouteHandleOverlay(this); overlay.listener = this; frame.addView(overlay, new FrameLayout.LayoutParams(-1, -1));
+        drawing = new RouteDrawOverlay(this, mapView); drawing.setId(R.id.editor_draw_surface);
+        drawing.listener = new RouteDrawOverlay.Listener() {
+            @Override public void strokeStarted() { cancelPlanning(); status.setText("正在绘制，松手完成这一笔…"); }
+            @Override public void strokeFinished(List<RunRoute.Point> points, double tolerance) { finishStroke(points, tolerance); }
+            @Override public void strokeCancelled() { if (!destroyed && !saving) { render(); plan(); } }
+        };
+        frame.addView(drawing, new FrameLayout.LayoutParams(-1, -1));
         mapNotice = Ui.note(this, "正在加载地图…"); mapNotice.setPadding(dp(10), dp(6), dp(10), dp(6));
         mapNotice.setBackgroundColor(Ui.color(this, R.color.ui_surface));
         FrameLayout.LayoutParams noticeParams = new FrameLayout.LayoutParams(-1, -2, Gravity.TOP); frame.addView(mapNotice, noticeParams);
@@ -171,7 +199,7 @@ public final class RouteEditorActivity extends AppCompatActivity implements Rout
         toolsParams.setMarginEnd(dp(6)); frame.addView(mapTools, toolsParams);
         mapView.getMapAsync(ready -> {
             if (destroyed) return;
-            map = ready; overlay.map = map;
+            map = ready; overlay.map = map; drawing.map = map;
             map.getUiSettings().setRotateGesturesEnabled(false); map.getUiSettings().setTiltGesturesEnabled(false);
             map.getUiSettings().setDoubleTapGesturesEnabled(false); map.getUiSettings().setQuickZoomGesturesEnabled(false);
             map.getUiSettings().setLogoEnabled(false); map.getUiSettings().setAttributionEnabled(true);
@@ -180,27 +208,72 @@ public final class RouteEditorActivity extends AppCompatActivity implements Rout
             realMapStyle = new RealMapStyle(this, mapView, map, mapNotice, overlay::reproject);
             loadStyle(); if (!loading) { restoreCamera(); plan(); }
         });
-        status = Ui.text(this, "正在读取路线…", 14, true); status.setPadding(dp(16), dp(8), dp(16), 0);
-        status.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE); root.addView(status);
-        HorizontalScrollView actions = new HorizontalScrollView(this); actions.setHorizontalScrollBarEnabled(false);
-        LinearLayout actionRow = row(); actionRow.setPadding(dp(8), 0, dp(8), 0); actions.addView(actionRow);
+        status = Ui.text(this, "正在读取路线…", 14, true); status.setId(R.id.editor_status);
+        status.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);
+        LinearLayout controls = Ui.column(this); controls.setPadding(dp(10), dp(8), dp(10), dp(6));
+        LinearLayout toolHost = Ui.column(this); toolHost.setBackgroundColor(Ui.color(this, R.color.ui_surface));
+        ScrollView toolScroll = new ScrollView(this); toolScroll.setFillViewport(false); toolScroll.addView(controls);
+        if (wideTools) {
+            workspace.addView(toolHost, new LinearLayout.LayoutParams(dp(224), -1));
+            toolHost.addView(toolScroll, new LinearLayout.LayoutParams(-1, 0, 1));
+            Ui.add(controls, status, 0); Ui.add(controls, hint, 8);
+        } else {
+            toolScroll.setVisibility(View.GONE); workspace.addView(toolScroll, new LinearLayout.LayoutParams(-1, dp(180)));
+            LinearLayout information = Ui.column(this); information.setPadding(dp(10), dp(6), dp(10), dp(6));
+            information.setBackgroundColor(Ui.color(this, R.color.ui_surface));
+            status.setMaxLines(2); hint.setMaxLines(2); Ui.add(information, status, 0); Ui.add(information, hint, 2);
+            frame.addView(information, new FrameLayout.LayoutParams(-1, -2, Gravity.BOTTOM));
+        }
+        inputModes = new MaterialButtonToggleGroup(this); inputModes.setSingleSelection(true); inputModes.setSelectionRequired(true);
+        int[] inputIds = {R.id.editor_input_point, R.id.editor_input_draw, R.id.editor_input_move};
+        String[] inputLabels = {"点选", "画线", "移动"};
+        for (int i = 0; i < inputIds.length; i++) {
+            MaterialButton b = button(inputLabels[i], v -> { }); b.setId(inputIds[i]); b.setCheckable(true); b.setTextSize(13);
+            b.setPadding(dp(6), b.getPaddingTop(), dp(6), b.getPaddingBottom());
+            inputModes.addView(b, new LinearLayout.LayoutParams(0, dp(48), 1));
+        }
+        inputModes.addOnButtonCheckedListener((group, id, checked) -> {
+            if (!checked || binding || saving || loading) return;
+            drawing.cancelStroke();
+            inputMode = id == R.id.editor_input_draw ? InputMode.DRAW : id == R.id.editor_input_move ? InputMode.MOVE : InputMode.POINT;
+            prefs.edit().putString("input_mode", inputMode.name()).apply(); render();
+        });
+        if (wideTools) Ui.add(controls, inputModes, 12);
+        LinearLayout actionRow = wideTools ? Ui.column(this) : row();
         undoButton = button("撤销", v -> history(false)); redoButton = button("重做", v -> history(true));
         delete = button("删除选点", v -> deletePoint());
         segment = button("本段手绘", v -> toggleSegment()); track = button("跑道参数", v -> trackParameters());
         start = button("设置起跑点", v -> { if (!saving) { pickingStart = !pickingStart; render(); } });
-        for (MaterialButton b : new MaterialButton[] {undoButton, redoButton, delete, segment, track, start}) actionRow.addView(b);
-        root.addView(actions);
-        LinearLayout switches = row(); switches.setPadding(dp(16), 0, dp(16), 0);
+        if (wideTools) {
+            Ui.pair(actionRow, undoButton, redoButton, 0);
+            for (MaterialButton b : new MaterialButton[] {delete, segment, track, start}) Ui.add(actionRow, b, 4);
+            Ui.add(controls, actionRow, 12);
+        } else {
+            HorizontalScrollView actions = new HorizontalScrollView(this); actions.setHorizontalScrollBarEnabled(false); actions.addView(actionRow);
+            for (MaterialButton b : new MaterialButton[] {undoButton, redoButton, delete, segment, track, start}) actionRow.addView(b);
+            Ui.add(controls, actions, 0);
+        }
+        LinearLayout switches = wideTools ? Ui.column(this) : row();
         closed = new MaterialSwitch(this); closed.setText("闭合路线"); smooth = new MaterialSwitch(this); smooth.setText("平滑曲线");
         switches.addView(closed, new LinearLayout.LayoutParams(-2, -2));
-        LinearLayout.LayoutParams smoothParams = new LinearLayout.LayoutParams(-2, -2); smoothParams.setMarginStart(dp(28));
-        switches.addView(smooth, smoothParams); root.addView(switches);
+        LinearLayout.LayoutParams smoothParams = new LinearLayout.LayoutParams(-2, -2); if (!wideTools) smoothParams.setMarginStart(dp(20));
+        switches.addView(smooth, smoothParams); Ui.add(controls, switches, 8);
         closed.setOnCheckedChangeListener((v, value) -> { if (!binding && !loading && !saving) { remember(); draft.closed = value; edited(); } });
         smooth.setOnCheckedChangeListener((v, value) -> { if (!binding && !loading && !saving) { remember(); draft.smooth = value; edited(); } });
-        LinearLayout footer = row(); footer.setPadding(dp(12), 0, dp(12), dp(6));
-        MaterialButton retry = button("重新规划", v -> { requestError = ""; plan(); });
+        LinearLayout footer = wideTools ? Ui.column(this) : row(); footer.setPadding(dp(8), dp(4), dp(8), dp(6));
+        footer.setBackgroundColor(Ui.color(this, R.color.ui_surface));
+        retry = button("重新规划", v -> { requestError = ""; plan(); });
         save = Ui.button(this, "保存并应用", true); save.setOnClickListener(v -> nameAndSave());
-        footer.addView(retry, new LinearLayout.LayoutParams(0, -2, 1)); footer.addView(save, new LinearLayout.LayoutParams(0, -2, 2)); root.addView(footer);
+        if (wideTools) {
+            Ui.add(footer, retry, 0); Ui.add(footer, save, 4); toolHost.addView(footer);
+        } else {
+            Ui.add(controls, retry, 4);
+            footer.addView(inputModes, new LinearLayout.LayoutParams(0, dp(48), 1));
+            MaterialButton tools = button("工具", v -> { toolScroll.setVisibility(toolScroll.getVisibility() == View.GONE ? View.VISIBLE : View.GONE); });
+            footer.addView(tools, new LinearLayout.LayoutParams(dp(48), dp(48)));
+            save.setTextSize(13); save.setPadding(dp(6), save.getPaddingTop(), dp(6), save.getPaddingBottom());
+            footer.addView(save, new LinearLayout.LayoutParams(dp(108), dp(48))); workspace.addView(footer);
+        }
     }
 
     private int dp(float value) { return Ui.dp(this, value); }
@@ -232,6 +305,25 @@ public final class RouteEditorActivity extends AppCompatActivity implements Rout
     }
     private void edited() {
         revision++; requestError = ""; syncControls(); render(); schedulePersist(); plan();
+    }
+    private void finishStroke(List<RunRoute.Point> raw, double tolerance) {
+        if (loading || saving || destroyed || draft.mode == RouteDraft.Mode.TRACK) return;
+        try {
+            int count = draft.anchors.size(), limit = draft.mode == RouteDraft.Mode.ROAD ? 20 : 500;
+            List<RunRoute.Point> points = FreehandStroke.prepare(raw, tolerance,
+                    Math.max(0, limit - count + (count > 0 ? 1 : 0)), draft.mode == RouteDraft.Mode.ROAD);
+            if (count > 0) {
+                double gap = RunRoute.distance(draft.anchors.get(count - 1).point, points.get(0));
+                if (gap > Math.max(15, tolerance * 8))
+                    throw new IllegalArgumentException("请从上一段终点附近继续绘制，或先新建路线");
+                if (gap < Math.max(.5, tolerance / 2)) points.remove(0);
+            }
+            if (count + points.size() > limit)
+                throw new IllegalArgumentException("控制点数量已达上限，请缩短这一笔或新建路线");
+            remember();
+            for (RunRoute.Point point : points) draft.anchors.add(new RouteDraft.Anchor(point));
+            selected = draft.anchors.size() - 1; edited();
+        } catch (Exception e) { message(e.getMessage()); render(); plan(); }
     }
     private void mapClick(RunRoute.Point p, boolean insert) {
         if (draft.mode == RouteDraft.Mode.TRACK) {
@@ -311,6 +403,28 @@ public final class RouteEditorActivity extends AppCompatActivity implements Rout
         undoButton.setEnabled(!undo.isEmpty() && !saving); redoButton.setEnabled(!redo.isEmpty() && !saving);
         track.setEnabled(!saving); start.setEnabled(!saving);
         boolean isTrack = draft.mode == RouteDraft.Mode.TRACK;
+        binding = true;
+        inputModes.check(inputMode == InputMode.DRAW ? R.id.editor_input_draw : inputMode == InputMode.MOVE ? R.id.editor_input_move : R.id.editor_input_point);
+        for (int i = 0; i < inputModes.getChildCount(); i++) {
+            MaterialButton choice = (MaterialButton) inputModes.getChildAt(i);
+            choice.setEnabled(!loading && !saving);
+            choice.setBackgroundTintList(android.content.res.ColorStateList.valueOf(Ui.color(this, choice.isChecked() ? R.color.primary_brand : R.color.ui_tonal)));
+            choice.setTextColor(Ui.color(this, choice.isChecked() ? R.color.on_primary_brand : R.color.ui_accent));
+            choice.setStrokeWidth(dp(choice.isChecked() ? 2 : 1));
+        }
+        binding = false;
+        inputModes.setVisibility(isTrack ? View.GONE : View.VISIBLE);
+        drawing.setVisibility(!isTrack && inputMode == InputMode.DRAW ? View.VISIBLE : View.GONE);
+        drawing.setEnabled(!loading && !saving);
+        overlay.setEnabled(!saving && (isTrack || inputMode == InputMode.POINT));
+        closed.setVisibility(isTrack ? View.GONE : View.VISIBLE);
+        smooth.setVisibility(draft.mode == RouteDraft.Mode.MANUAL ? View.VISIBLE : View.GONE);
+        retry.setVisibility(draft.mode == RouteDraft.Mode.ROAD ? View.VISIBLE : View.GONE);
+        retry.setEnabled(!loading && !saving);
+        if (!wideTools) {
+            LinearLayout.LayoutParams size = (LinearLayout.LayoutParams) save.getLayoutParams();
+            size.width = isTrack ? 0 : dp(108); size.weight = isTrack ? 1 : 0; save.setLayoutParams(size);
+        }
         track.setVisibility(isTrack ? View.VISIBLE : View.GONE); start.setVisibility(isTrack ? View.VISIBLE : View.GONE);
         delete.setVisibility(isTrack ? View.GONE : View.VISIBLE); segment.setVisibility(draft.mode == RouteDraft.Mode.ROAD ? View.VISIBLE : View.GONE);
         delete.setEnabled(selected >= 0 && !saving); segment.setEnabled(selected >= 0 && (selected > 0 || draft.closed) && !saving);
@@ -318,7 +432,9 @@ public final class RouteEditorActivity extends AppCompatActivity implements Rout
             segment.setText((selected == 0 ? draft.closingManual : draft.anchors.get(selected).manual) ? "本段沿路" : "本段手绘");
         start.setText(pickingStart ? "取消选起点" : "设置起跑点");
         hint.setText(isTrack ? pickingStart ? "点击跑道附近，设为起跑点" : "点击放置中心；拖“中”移动，拖“长”转向调长，拖“宽”调弯道"
-                : "点击加点 · 拖动调整 · 长按插点" + (draft.mode == RouteDraft.Mode.MANUAL ? "；平滑不保证沿道路" : "；选择终点可切换本段手绘"));
+                : inputMode == InputMode.MOVE ? "拖动移动地图，双指缩放；切回点选或画线继续编辑"
+                : inputMode == InputMode.DRAW ? (draft.mode == RouteDraft.Mode.ROAD ? "拖动画线，松手沿道路规划；双指移动地图" : "拖动直接画轨迹，双指移动地图；下一笔从终点接续")
+                : "点击加点 · 拖动调整 · 长按插点" + (draft.mode == RouteDraft.Mode.MANUAL ? "；可开启平滑曲线" : "；选择终点可切换本段手绘"));
         String text = loading ? "正在恢复草稿…" : assembly.route != null
                 ? String.format(Locale.CHINA, "%s  ·  %.2f 米  ·  %d 点%s", isTrack ? "操场单圈" : draft.mode == RouteDraft.Mode.ROAD ? "步行路线" : "手动路线",
                 assembly.route.lengthMeters, assembly.route.size(), assembly.route.closed ? "  ·  闭合循环" : "  ·  到终点折返") : assembly.problem;
@@ -441,7 +557,7 @@ public final class RouteEditorActivity extends AppCompatActivity implements Rout
             else if (which == 3) fromCurrent(); else if (which == 4) jump(); else if (which == 5) pointList();
             else if (which == 6) services(); else if (which == 7) loadStyle();
             else new MaterialAlertDialogBuilder(this).setTitle("地图绘制说明")
-                    .setMessage("道路：依次点击加点，长按路线插点。选中某段终点后可将该段切换为手绘，起点控制闭合段。红色虚线表示未完成部分。\n\n操场：拖动中心、长度和宽度手柄，参数中可切换方向与道次。设置起跑点后点击跑道附近。\n\n手动：支持折线与平滑曲线；平滑可能偏离控制点间的道路，请对照地图检查。\n\n草稿自动保存在本机；只有“保存并应用”会替换当前路线。公开步行服务仅供小量测试，可在服务设置中换成自己的 Valhalla。")
+                    .setMessage("点选：点击加点，长按插点，拖动小圆点调整。小圆点周围保留了更大的触摸范围。\n\n画线：单指或鼠标拖动直接绘制，松手结束一笔；下一笔从终点附近接续。双指移动或缩放地图，也可切到“移动”后单指拖图。每笔可撤销和重做。\n\n道路：点选或画线后按步行路网规划；红色虚线表示未完成部分。选中终点可将该段改为手绘。\n\n操场：拖动中心、长度和宽度手柄，参数中可切换方向与道次。\n\n手动：保留绘制形状，可选平滑和闭合；平滑不保证沿道路。手机下方“工具”可展开更多操作。\n\n草稿自动保存在本机；只有“保存并应用”会替换当前路线。")
                     .setPositiveButton("知道了", null).show();
         }).show();
     }

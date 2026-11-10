@@ -4,4 +4,10 @@
     <item name="history_start" type="id"/>
     <item name="history_end" type="id"/>
     <item name="history_pace" type="id"/>
+    <item name="editor_map" type="id"/>
+    <item name="editor_status" type="id"/>
+    <item name="editor_draw_surface" type="id"/>
+    <item name="editor_input_point" type="id"/>
+    <item name="editor_input_draw" type="id"/>
+    <item name="editor_input_move" type="id"/>
 </resources>

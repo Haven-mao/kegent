@@ -169,6 +169,11 @@ public final class RouteGeometry {
     public static List<RunRoute.Point> simplify(RunRoute route, double tolerance) {
         List<RunRoute.Point> points = new ArrayList<>();
         for (int i = 0; i < route.size(); i++) points.add(route.get(i));
+        return simplify(points, tolerance);
+    }
+    public static List<RunRoute.Point> simplify(List<RunRoute.Point> points, double tolerance) {
+        if (!Double.isFinite(tolerance) || tolerance < 0) throw new IllegalArgumentException("简化精度无效");
+        if (points.size() < 3) return new ArrayList<>(points);
         boolean[] keep = new boolean[points.size()];
         keep[0] = keep[points.size() - 1] = true;
         Plane plane = new Plane(points.get(0));
