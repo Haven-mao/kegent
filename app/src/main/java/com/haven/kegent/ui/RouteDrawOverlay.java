@@ -22,7 +22,7 @@ public final class RouteDrawOverlay extends View {
     private final MapView mapView;
     private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Path ink = new Path();
-    private final List<RunRoute.Point> points = new ArrayList<>();
+    private final List<PointF> points = new ArrayList<>();
     public MapLibreMap map;
     public Listener listener;
     private float lastX, lastY;
@@ -45,10 +45,8 @@ public final class RouteDrawOverlay extends View {
     private void sample(float x, float y, boolean force) {
         if (!force && Math.hypot(x - lastX, y - lastY) < Ui.dp(getContext(), 2)) return;
         if (points.size() >= 10000) { tooLong = true; return; }
-        LatLng at = map.getProjection().fromScreenLocation(new PointF(x, y));
-        RunRoute.Point point = new RunRoute.Point(at.getLatitude(), at.getLongitude());
         if (points.isEmpty()) ink.moveTo(x, y); else ink.lineTo(x, y);
-        points.add(point); lastX = x; lastY = y;
+        points.add(new PointF(x, y)); lastX = x; lastY = y;
     }
     @Override public boolean onTouchEvent(MotionEvent event) {
         if (!isEnabled() || map == null || listener == null) return false;
@@ -74,14 +72,18 @@ public final class RouteDrawOverlay extends View {
         }
         if (action == MotionEvent.ACTION_MOVE) {
             for (int i = 0; i < event.getHistorySize(); i++) sample(event.getHistoricalX(i), event.getHistoricalY(i), false);
-            sample(event.getX(), event.getY(), false); invalidate(); return true;
+            sample(event.getX(), event.getY(), false); postInvalidateOnAnimation(); return true;
         }
         if (action == MotionEvent.ACTION_UP) {
             sample(event.getX(), event.getY(), true); active = false; ink.reset(); invalidate(); performClick();
             LatLng left = map.getProjection().fromScreenLocation(new PointF(event.getX(), event.getY()));
             LatLng right = map.getProjection().fromScreenLocation(new PointF(event.getX() + Ui.dp(getContext(), 2), event.getY()));
             double tolerance = Math.max(.5, RunRoute.distance(new RunRoute.Point(left.getLatitude(), left.getLongitude()), new RunRoute.Point(right.getLatitude(), right.getLongitude())));
-            List<RunRoute.Point> result = new ArrayList<>(points); points.clear();
+            double[] pixels = new double[points.size() * 2], coordinates = new double[pixels.length];
+            for (int i = 0; i < points.size(); i++) { pixels[i * 2] = points.get(i).x; pixels[i * 2 + 1] = points.get(i).y; }
+            if (!points.isEmpty()) map.getProjection().fromScreenLocations(pixels, coordinates);
+            List<RunRoute.Point> result = new ArrayList<>();
+            for (int i = 0; i < points.size(); i++) result.add(new RunRoute.Point(coordinates[i * 2], coordinates[i * 2 + 1])); points.clear();
             getParent().requestDisallowInterceptTouchEvent(false);
             if (tooLong) { android.widget.Toast.makeText(getContext(), "这一笔过长，请分段绘制", android.widget.Toast.LENGTH_LONG).show(); listener.strokeCancelled(); }
             else listener.strokeFinished(result, tolerance);

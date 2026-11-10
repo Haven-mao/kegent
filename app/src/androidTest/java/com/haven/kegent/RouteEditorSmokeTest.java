@@ -82,8 +82,9 @@ public class RouteEditorSmokeTest {
         }
     }
     private static void tool(String text) {
-        try { onView(withText(text)).check(matches(isDisplayed())); }
-        catch (AssertionError | androidx.test.espresso.NoMatchingViewException e) { onView(withText("工具")).perform(click()); }
+        boolean[] visible = {false};
+        onView(withText(text)).check((view, error) -> { visible[0] = error == null && view.isShown(); });
+        if (!visible[0]) onView(withText("工具")).perform(click());
         onView(withText(text)).perform(click());
     }
     private static ViewAction drawStroke() {
@@ -154,7 +155,8 @@ public class RouteEditorSmokeTest {
             assertTrue(saved.closed); assertEquals(400 + 2 * Math.PI * 1.22, saved.lengthMeters, .5);
         }
         onView(withText("地图绘制 · 道路 / 操场")).perform(click()); awaitText("地图绘制"); Thread.sleep(700);
-        onView(withText("操场")).check(matches(isSelected()));
+        onView(withText("沿道路")).check(matches(isSelected()));
+        onView(withText("保存并应用")).check(matches(not(isEnabled())));
         onView(withText("更多")).perform(click()); onView(withText("新建手动路线")).perform(click()); onView(withText("新建")).perform(click());
         Thread.sleep(800);
         onView(isAssignableFrom(MapView.class)).perform(tap(.28f, .35f));
@@ -179,6 +181,7 @@ public class RouteEditorSmokeTest {
         }, Press.FINGER, InputDevice.SOURCE_TOUCHSCREEN, MotionEvent.BUTTON_PRIMARY);
     }
     private void capture(String name) throws Exception {
+        if ("true".equals(InstrumentationRegistry.getArguments().getString("skipScreenshots"))) return;
         Bitmap bitmap = InstrumentationRegistry.getInstrumentation().getUiAutomation().takeScreenshot();
         File directory = context.getExternalFilesDir("map-editor-smoke");
         if (directory != null && bitmap != null) try (OutputStream out = new FileOutputStream(new File(directory, name + ".png"))) { bitmap.compress(Bitmap.CompressFormat.PNG, 100, out); }

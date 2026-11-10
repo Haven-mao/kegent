@@ -50,6 +50,10 @@ public final class RouteEditorActivity extends AppCompatActivity implements Rout
     private static final String DEFAULT_STYLE = RealMapStyle.DEFAULT_STYLE;
     private final Handler main = new Handler(Looper.getMainLooper());
     private final ExecutorService network = Executors.newSingleThreadExecutor(), storage = Executors.newSingleThreadExecutor();
+    private final ExecutorService searchWorker = Executors.newSingleThreadExecutor();
+    private PlaceSearch placeSearch;
+    private Future<?> searchTask;
+    private int searchRevision;
     private final WalkingRoutePlanner planner = new WalkingRoutePlanner();
     private final LinkedHashMap<String, List<RunRoute.Point>> cache = new LinkedHashMap<String, List<RunRoute.Point>>(32, .75f, true) {
         @Override protected boolean removeEldestEntry(Map.Entry<String, List<RunRoute.Point>> entry) { return size() > 60; }
@@ -58,6 +62,8 @@ public final class RouteEditorActivity extends AppCompatActivity implements Rout
     private RouteDraft draft = new RouteDraft();
     private RouteAssembly assembly = new RouteAssembly();
     private RouteDraft currentTrack;
+    private JSONObject recoverableDraft;
+    private final EnumMap<RouteDraft.Mode, RouteDraft> modeDrafts = new EnumMap<>(RouteDraft.Mode.class);
     private RouteRepository repository;
     private SharedPreferences prefs;
     private MapView mapView;
@@ -70,6 +76,8 @@ public final class RouteEditorActivity extends AppCompatActivity implements Rout
     private MaterialButtonToggleGroup inputModes;
     private InputMode inputMode = InputMode.POINT;
     private boolean wideTools;
+    private boolean geometryDirty = true, dragRenderQueued, draftTouched;
+    private final Runnable dragRender = () -> { dragRenderQueued = false; render(); };
     private MaterialSwitch closed, smooth;
     private TabLayout modes;
     private Future<?> planningTask;
@@ -96,8 +104,6 @@ public final class RouteEditorActivity extends AppCompatActivity implements Rout
             try { saved = repository.readDraft(); } catch (Exception e) { warning = "上次草稿无法恢复，已保留原文件"; }
             RouteDraft restored = null;
             try {
-                if (saved != null) restored = RouteDraft.fromJson(saved.getJSONObject("draft"));
-                else restored = repository.selectedDraft();
                 if (state != null && state.getString("editor_draft") != null)
                     restored = RouteDraft.fromJson(new JSONObject(state.getString("editor_draft")));
             } catch (Exception e) { warning = "草稿格式无效，已保留原文件"; }
@@ -108,10 +114,12 @@ public final class RouteEditorActivity extends AppCompatActivity implements Rout
                 if (restored == null) { restored = new RouteDraft(); restored.center = RouteGeometry.center(current); }
             } catch (Exception ignored) { }
             RouteDraft result = restored == null ? new RouteDraft() : restored;
-            JSONObject savedState = saved; String note = warning; RouteDraft initialTrack = trackFit;
+            JSONObject savedState = state != null ? saved : null; String note = warning; RouteDraft initialTrack = trackFit; JSONObject previousDraft = saved;
             main.post(() -> {
                 if (destroyed) return;
-                draft = result; currentTrack = initialTrack;
+                draft = result; currentTrack = initialTrack; recoverableDraft = previousDraft; geometryDirty = true;
+                draftTouched = state != null;
+                modeDrafts.put(draft.mode, draft);
                 if (savedState != null) restoreCacheAndCamera(savedState);
                 if (state != null && state.containsKey("editor_lat")) {
                     cameraLat = state.getDouble("editor_lat"); cameraLon = state.getDouble("editor_lon"); cameraZoom = state.getDouble("editor_zoom", 17);
@@ -121,6 +129,7 @@ public final class RouteEditorActivity extends AppCompatActivity implements Rout
                 if (!note.isEmpty()) message(note);
             });
         });
+        placeSearch = new PlaceSearch(getCacheDir());
     }
 
     private void buildScreen(Bundle state) {
@@ -131,6 +140,7 @@ public final class RouteEditorActivity extends AppCompatActivity implements Rout
         TextView title = Ui.text(this, "地图绘制", 18, true);
         LinearLayout.LayoutParams titleParams = wideTools ? new LinearLayout.LayoutParams(-2, -2) : new LinearLayout.LayoutParams(0, -2, 1);
         titleParams.setMarginStart(dp(12)); header.addView(title, titleParams);
+        header.addView(button("搜索", v -> searchPlaces()));
         header.addView(button("更多", v -> more())); root.addView(header);
         modes = new TabLayout(this); modes.setTabTextColors(Ui.color(this, R.color.ui_muted), Ui.color(this, R.color.ui_accent));
         modes.setSelectedTabIndicatorColor(Ui.color(this, R.color.ui_accent));
@@ -145,10 +155,14 @@ public final class RouteEditorActivity extends AppCompatActivity implements Rout
                 if (binding || loading) return;
                 if (saving) { syncControls(); return; }
                 RouteDraft.Mode next = RouteDraft.Mode.values()[tab.getPosition()];
-                if (next == RouteDraft.Mode.ROAD && draft.anchors.size() > 20) {
-                    message("道路模式最多 20 个选点，请先新建道路路线"); syncControls(); return;
+                remember(); modeDrafts.put(draft.mode, draft);
+                RouteDraft nextDraft = modeDrafts.get(next);
+                if (nextDraft == null) {
+                    nextDraft = new RouteDraft(); nextDraft.mode = next;
+                    nextDraft.center = map == null ? draft.center : point(map.getCameraPosition().target);
+                    nextDraft.name = next == RouteDraft.Mode.TRACK ? "操场路线" : "地图路线";
                 }
-                remember(); draft.mode = next; pickingStart = false; selected = -1;
+                draft = nextDraft; pickingStart = false; selected = -1;
                 if (next == RouteDraft.Mode.TRACK && !draft.trackInitialized) initializeTrack(draft);
                 edited(); fit();
             }
@@ -304,7 +318,8 @@ public final class RouteEditorActivity extends AppCompatActivity implements Rout
         catch (Exception e) { message("无法恢复这一步编辑"); }
     }
     private void edited() {
-        revision++; requestError = ""; syncControls(); render(); schedulePersist(); plan();
+        revision++; geometryDirty = true; draftTouched = true; modeDrafts.put(draft.mode, draft);
+        requestError = ""; syncControls(); schedulePersist(); plan();
     }
     private void finishStroke(List<RunRoute.Point> raw, double tolerance) {
         if (loading || saving || destroyed || draft.mode == RouteDraft.Mode.TRACK) return;
@@ -385,9 +400,12 @@ public final class RouteEditorActivity extends AppCompatActivity implements Rout
                 }
             }
         } else if (index < draft.anchors.size()) draft.anchors.get(index).point = p;
-        render();
+        geometryDirty = true;
+        if (!dragRenderQueued) { dragRenderQueued = true; main.postDelayed(dragRender, 24); }
     }
-    @Override public void dragEnded(int index) { if (!saving) edited(); }
+    @Override public void dragEnded(int index) {
+        main.removeCallbacks(dragRender); dragRenderQueued = false; if (!saving) edited();
+    }
     private void updateStart(RunRoute.Point p) {
         try {
             RouteDraft base = RouteDraft.fromJson(draft.json()); base.startFraction = 0; base.clockwise = false;
@@ -399,7 +417,8 @@ public final class RouteEditorActivity extends AppCompatActivity implements Rout
 
     private void render() {
         if (status == null || destroyed) return;
-        assembly = RouteAssembly.build(draft, cache, endpoint());
+        boolean updateGeometry = geometryDirty;
+        if (updateGeometry) { assembly = RouteAssembly.build(draft, cache, endpoint()); geometryDirty = false; }
         undoButton.setEnabled(!undo.isEmpty() && !saving); redoButton.setEnabled(!redo.isEmpty() && !saving);
         track.setEnabled(!saving); start.setEnabled(!saving);
         boolean isTrack = draft.mode == RouteDraft.Mode.TRACK;
@@ -451,7 +470,7 @@ public final class RouteEditorActivity extends AppCompatActivity implements Rout
             overlay.handles.add(new RouteHandleOverlay.Handle(RouteGeometry.offset(draft.center, 0, r, draft.bearing), "宽"));
             if (assembly.route != null) overlay.handles.add(new RouteHandleOverlay.Handle(assembly.route.get(0), "起"));
         } else for (int i = 0; i < draft.anchors.size(); i++) overlay.handles.add(new RouteHandleOverlay.Handle(draft.anchors.get(i).point, String.valueOf(i + 1)));
-        drawLines(); overlay.invalidate();
+        if (updateGeometry) drawLines(); else overlay.reprojectHandles();
     }
     private void drawLines() {
         overlay.routes.clear(); overlay.routes.addAll(assembly.pieces); overlay.reproject();
@@ -461,7 +480,7 @@ public final class RouteEditorActivity extends AppCompatActivity implements Rout
         revision++; if (planningTask != null) planningTask.cancel(true); planner.cancel(); planning = false;
     }
     private void plan() {
-        cancelPlanning();
+        cancelPlanning(); geometryDirty = true;
         if (loading || saving || draft.mode != RouteDraft.Mode.ROAD || destroyed) { render(); return; }
         final int expected = revision; final String service = endpoint();
         List<RunRoute.Point[]> missing = new ArrayList<>();
@@ -476,7 +495,7 @@ public final class RouteEditorActivity extends AppCompatActivity implements Rout
                 if (Thread.currentThread().isInterrupted()) return;
                 try {
                     List<RunRoute.Point> shape = planner.route(service, leg[0], leg[1]);
-                    main.post(() -> { if (!destroyed && revision == expected) { cache.put(WalkingRoutePlanner.key(service, leg[0], leg[1]), shape); render(); schedulePersist(); } });
+                    main.post(() -> { if (!destroyed && revision == expected) { cache.put(WalkingRoutePlanner.key(service, leg[0], leg[1]), shape); geometryDirty = true; render(); schedulePersist(); } });
                 } catch (Exception e) {
                     if (Thread.currentThread().isInterrupted()) return;
                     String error = e instanceof java.net.SocketTimeoutException ? "路线服务超时，可重试或使用手绘段" : e.getMessage();
@@ -551,15 +570,69 @@ public final class RouteEditorActivity extends AppCompatActivity implements Rout
 
     private void more() {
         if (saving || loading) return;
-        String[] options = {"新建道路路线", "新建操场", "新建手动路线", "从当前路线编辑", "跳转位置", "选点列表", "地图与路线服务", "重试地图", "操作说明"};
+        String[] options = {"新建道路路线", "新建操场", "新建手动路线", "从当前路线编辑", "跳转位置", "选点列表", "地图与路线服务", "重试地图", "恢复上次草稿", "操作说明"};
         new MaterialAlertDialogBuilder(this).setTitle("路线工具").setItems(options, (dialog, which) -> {
             if (which < 3) newDraft(RouteDraft.Mode.values()[which]);
             else if (which == 3) fromCurrent(); else if (which == 4) jump(); else if (which == 5) pointList();
-            else if (which == 6) services(); else if (which == 7) loadStyle();
+            else if (which == 6) services(); else if (which == 7) loadStyle(); else if (which == 8) restorePreviousDraft();
             else new MaterialAlertDialogBuilder(this).setTitle("地图绘制说明")
                     .setMessage("点选：点击加点，长按插点，拖动小圆点调整。小圆点周围保留了更大的触摸范围。\n\n画线：单指或鼠标拖动直接绘制，松手结束一笔；下一笔从终点附近接续。双指移动或缩放地图，也可切到“移动”后单指拖图。每笔可撤销和重做。\n\n道路：点选或画线后按步行路网规划；红色虚线表示未完成部分。选中终点可将该段改为手绘。\n\n操场：拖动中心、长度和宽度手柄，参数中可切换方向与道次。\n\n手动：保留绘制形状，可选平滑和闭合；平滑不保证沿道路。手机下方“工具”可展开更多操作。\n\n草稿自动保存在本机；只有“保存并应用”会替换当前路线。")
                     .setPositiveButton("知道了", null).show();
         }).show();
+    }
+    private void restorePreviousDraft() {
+        if (recoverableDraft == null) { message("暂无可恢复的草稿"); return; }
+        try {
+            RouteDraft restored = RouteDraft.fromJson(recoverableDraft.getJSONObject("draft"));
+            remember(); draft = restored; modeDrafts.put(draft.mode, draft); selected = -1;
+            restoreCacheAndCamera(recoverableDraft); edited(); restoreCamera();
+        } catch (Exception e) { message("上次草稿无法恢复，原文件仍保留"); }
+    }
+    private void searchPlaces() {
+        if (saving || loading) return;
+        LinearLayout form = Ui.column(this); form.setPadding(dp(20), 0, dp(20), 0);
+        TextInputLayout query = Ui.field(this, "搜索地点或地址", "", InputType.TYPE_CLASS_TEXT);
+        query.getEditText().setId(R.id.place_search_input); query.getEditText().setImeOptions(android.view.inputmethod.EditorInfo.IME_ACTION_SEARCH);
+        Ui.add(form, query, 8); TextView state = Ui.note(this, "输入地名后点击搜索，选择结果跳转地图"); Ui.add(form, state, 8);
+        ScrollView scroll = new ScrollView(this); LinearLayout results = Ui.column(this); scroll.addView(results); form.addView(scroll, new LinearLayout.LayoutParams(-1, dp(240)));
+        Ui.add(form, Ui.note(this, "搜索数据 © OpenStreetMap contributors"), 6);
+        androidx.appcompat.app.AlertDialog dialog = new MaterialAlertDialogBuilder(this).setTitle("搜索位置").setView(form)
+                .setNegativeButton("关闭", null).setNeutralButton("输入坐标", (d, w) -> jump()).setPositiveButton("搜索", null).create();
+        Runnable submit = () -> {
+            String text = Ui.value(query);
+            if (text.length() < 2 || text.length() > 120) { query.setError("请输入 2–120 字的地点或地址"); return; }
+            query.setError(null); int expected = ++searchRevision;
+            if (searchTask != null) searchTask.cancel(true); placeSearch.cancel();
+            results.removeAllViews(); state.setText("正在搜索…");
+            String service = prefs.getString("search_endpoint", PlaceSearch.DEFAULT_ENDPOINT);
+            searchTask = searchWorker.submit(() -> {
+                try {
+                    List<PlaceSearch.Result> matches = placeSearch.search(service, text);
+                    main.post(() -> {
+                        if (destroyed || expected != searchRevision || !dialog.isShowing()) return;
+                        state.setText(matches.isEmpty() ? "未找到地点，可补充城市名后重试" : "选择地点跳转，当前路线保持不变");
+                        for (PlaceSearch.Result result : matches) {
+                            MaterialButton item = button(result.name + "\n" + result.address, v -> {
+                                if (map != null) {
+                                    map.cancelTransitions();
+                                    if (result.north - result.south > .00001 && result.east - result.west > .00001 && result.north - result.south < 10 && result.east - result.west < 10)
+                                        map.animateCamera(CameraUpdateFactory.newLatLngBounds(new LatLngBounds.Builder().include(new LatLng(result.south, result.west)).include(new LatLng(result.north, result.east)).build(), dp(36)));
+                                    else map.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng(result.point), 16));
+                                }
+                                dialog.dismiss();
+                            });
+                            item.setSingleLine(false); item.setMaxLines(3); item.setGravity(Gravity.START | Gravity.CENTER_VERTICAL); Ui.add(results, item, 6);
+                        }
+                    });
+                } catch (Exception e) {
+                    if (Thread.currentThread().isInterrupted()) return;
+                    main.post(() -> { if (!destroyed && expected == searchRevision && dialog.isShowing()) state.setText("搜索暂不可用，请检查网络、重试或输入坐标跳转"); });
+                }
+            });
+        };
+        dialog.setOnShowListener(v -> dialog.getButton(-1).setOnClickListener(b -> submit.run()));
+        query.getEditText().setOnEditorActionListener((v, action, event) -> { if (action == android.view.inputmethod.EditorInfo.IME_ACTION_SEARCH) { submit.run(); return true; } return false; });
+        dialog.setOnDismissListener(v -> { searchRevision++; if (searchTask != null) searchTask.cancel(true); placeSearch.cancel(); }); dialog.show();
     }
     private void newDraft(RouteDraft.Mode mode) {
         new MaterialAlertDialogBuilder(this).setTitle("新建路线？").setMessage("可以通过撤销恢复当前编辑。")
@@ -612,15 +685,16 @@ public final class RouteEditorActivity extends AppCompatActivity implements Rout
         LinearLayout form = Ui.column(this); form.setPadding(dp(20), 0, dp(20), 0);
         TextInputLayout route = Ui.field(this, "Valhalla 步行接口（HTTPS）", endpoint(), InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_URI);
         TextInputLayout style = Ui.field(this, "地图样式 HTTPS 地址，或填写 osm", prefs.getString("style", DEFAULT_STYLE), InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_URI);
-        Ui.add(form, route, 8); Ui.add(form, style, 8);
+        TextInputLayout search = Ui.field(this, "地点搜索服务（Photon / Nominatim HTTPS）", prefs.getString("search_endpoint", PlaceSearch.DEFAULT_ENDPOINT), InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_URI);
+        Ui.add(form, route, 8); Ui.add(form, style, 8); Ui.add(form, search, 8);
         Ui.add(form, Ui.note(this, "默认使用 OpenFreeMap 底图及 FOSSGIS 公共步行服务，适合小量测试。道路选点会发送到所选路线服务；地图与路线可能受网络及覆盖影响。"), 12);
         ScrollView scroll = new ScrollView(this); scroll.addView(form);
         androidx.appcompat.app.AlertDialog dialog = new MaterialAlertDialogBuilder(this).setTitle("地图与路线服务").setView(scroll)
-                .setNeutralButton("恢复默认", (d, w) -> { prefs.edit().remove("endpoint").remove("style").apply(); requestError = ""; loadStyle(); plan(); })
+                .setNeutralButton("恢复默认", (d, w) -> { prefs.edit().remove("endpoint").remove("style").remove("search_endpoint").apply(); requestError = ""; loadStyle(); plan(); })
                 .setNegativeButton("取消", null).setPositiveButton("保存", null).create();
         dialog.setOnShowListener(v -> dialog.getButton(-1).setOnClickListener(b -> {
-            try { WalkingRoutePlanner.validateEndpoint(Ui.value(route)); if (!"osm".equals(Ui.value(style))) WalkingRoutePlanner.validateEndpoint(Ui.value(style));
-                prefs.edit().putString("endpoint", Ui.value(route)).putString("style", Ui.value(style)).apply(); requestError = ""; loadStyle(); plan(); dialog.dismiss(); }
+            try { WalkingRoutePlanner.validateEndpoint(Ui.value(route)); if (!"osm".equals(Ui.value(style))) WalkingRoutePlanner.validateEndpoint(Ui.value(style)); WalkingRoutePlanner.validateEndpoint(Ui.value(search));
+                prefs.edit().putString("endpoint", Ui.value(route)).putString("style", Ui.value(style)).putString("search_endpoint", Ui.value(search)).apply(); requestError = ""; loadStyle(); plan(); dialog.dismiss(); }
             catch (Exception e) { message("请填写有效 HTTPS 地址；地图样式也可填写 osm"); }
         })); dialog.show();
     }
@@ -641,7 +715,8 @@ public final class RouteEditorActivity extends AppCompatActivity implements Rout
                 RouteDraft snapshot = RouteDraft.fromJson(draft.json()); RunRoute route = assembly.route; JSONObject data = snapshot();
                 storage.execute(() -> {
                     try {
-                        repository.saveDraft(data); repository.select(route, snapshot);
+                        repository.saveAndSelect(route, snapshot);
+                        try { data.put("draft", snapshot.json()); repository.saveDraft(data); } catch (Exception ignored) { }
                         main.post(() -> { if (!destroyed) { setResult(RESULT_OK, new Intent().putExtra("route_name", route.name)); finish(); } });
                     } catch (Exception e) { main.post(() -> { if (!destroyed) { saving = false; overlay.setEnabled(true); back.setEnabled(true); modes.setEnabled(true); syncControls(); render(); message("保存失败：" + e.getMessage()); } }); }
                 });
@@ -675,7 +750,7 @@ public final class RouteEditorActivity extends AppCompatActivity implements Rout
     }
     private void schedulePersist() { if (!loading && !saving && !destroyed) { main.removeCallbacks(autoSave); main.postDelayed(autoSave, 450); } }
     private void persist() {
-        if (loading || saving || destroyed) return;
+        if (loading || saving || destroyed || !draftTouched) return;
         try { JSONObject data = snapshot(); storage.execute(() -> { try { repository.saveDraft(data); }
             catch (Exception e) { main.post(() -> { if (!destroyed) message("草稿保存失败，请检查可用空间"); }); } }); }
         catch (Exception e) { message("草稿暂时无法保存"); }
@@ -697,6 +772,7 @@ public final class RouteEditorActivity extends AppCompatActivity implements Rout
     @Override public void onLowMemory() { super.onLowMemory(); mapView.onLowMemory(); }
     @Override protected void onDestroy() {
         main.removeCallbacksAndMessages(null); destroyed = true; cancelPlanning(); network.shutdownNow(); storage.shutdown();
+        searchRevision++; if (searchTask != null) searchTask.cancel(true); if (placeSearch != null) placeSearch.cancel(); searchWorker.shutdownNow();
         if (realMapStyle != null) realMapStyle.dispose(); mapView.onDestroy(); super.onDestroy();
     }
 }

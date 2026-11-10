@@ -33,6 +33,10 @@ public final class RouteHandleOverlay extends View {
     private final List<Path> routePaths = new ArrayList<>(), pendingPaths = new ArrayList<>();
     private final List<PointF> handlePositions = new ArrayList<>();
     private final LatLng coordinate = new LatLng();
+    private double[] input = new double[0], output = new double[0];
+    private double[] handleInput = new double[0], handleOutput = new double[0];
+    private boolean queued, geometryDirty = true;
+    private final Runnable projection = this::projectFrame;
     private final DashPathEffect dashed;
     private int pressed = -1;
     private float downX, downY;
@@ -47,21 +51,56 @@ public final class RouteHandleOverlay extends View {
         return map.getProjection().toScreenLocation(coordinate);
     }
     public void reproject() {
+        geometryDirty = true; requestProjection();
+    }
+    public void reprojectHandles() { requestProjection(); }
+    private void requestProjection() {
+        if (!queued) { queued = true; postOnAnimation(projection); }
+    }
+    private void projectFrame() {
+        queued = false;
         if (map == null) return;
-        routePaths.clear(); pendingPaths.clear(); handlePositions.clear();
-        buildPaths(routes, routePaths); buildPaths(pending, pendingPaths);
-        for (Handle handle : handles) handlePositions.add(project(handle.point));
+        if (!geometryDirty) {
+            updateHandlePositions(); invalidate(); return;
+        }
+        geometryDirty = false;
+        int count = handles.size();
+        for (List<RunRoute.Point> shape : routes) count += shape.size();
+        for (List<RunRoute.Point> shape : pending) count += shape.size();
+        if (input.length != count * 2) { input = new double[count * 2]; output = new double[count * 2]; }
+        int index = 0;
+        for (List<RunRoute.Point> shape : routes) for (RunRoute.Point p : shape) { input[index++] = p.latitude; input[index++] = p.longitude; }
+        for (List<RunRoute.Point> shape : pending) for (RunRoute.Point p : shape) { input[index++] = p.latitude; input[index++] = p.longitude; }
+        for (Handle handle : handles) { input[index++] = handle.point.latitude; input[index++] = handle.point.longitude; }
+        if (count > 0) map.getProjection().toScreenLocations(input, output);
+        int offset = buildPaths(routes, routePaths, 0); offset = buildPaths(pending, pendingPaths, offset);
+        while (handlePositions.size() > handles.size()) handlePositions.remove(handlePositions.size() - 1);
+        for (int i = 0; i < handles.size(); i++) {
+            if (i >= handlePositions.size()) handlePositions.add(new PointF());
+            handlePositions.get(i).set((float) output[offset++], (float) output[offset++]);
+        }
         invalidate();
     }
-    private void buildPaths(List<List<RunRoute.Point>> shapes, List<Path> paths) {
-        for (List<RunRoute.Point> shape : shapes) {
-            Path path = new Path(); boolean first = true;
-            for (RunRoute.Point point : shape) {
-                PointF at = project(point);
-                if (first) { path.moveTo(at.x, at.y); first = false; } else path.lineTo(at.x, at.y);
-            }
-            paths.add(path);
+    private void updateHandlePositions() {
+        if (handleInput.length != handles.size() * 2) { handleInput = new double[handles.size() * 2]; handleOutput = new double[handleInput.length]; }
+        for (int i = 0; i < handles.size(); i++) { handleInput[i * 2] = handles.get(i).point.latitude; handleInput[i * 2 + 1] = handles.get(i).point.longitude; }
+        if (!handles.isEmpty()) map.getProjection().toScreenLocations(handleInput, handleOutput);
+        while (handlePositions.size() > handles.size()) handlePositions.remove(handlePositions.size() - 1);
+        for (int i = 0; i < handles.size(); i++) {
+            if (i >= handlePositions.size()) handlePositions.add(new PointF());
+            handlePositions.get(i).set((float) handleOutput[i * 2], (float) handleOutput[i * 2 + 1]);
         }
+    }
+    private int buildPaths(List<List<RunRoute.Point>> shapes, List<Path> paths, int offset) {
+        while (paths.size() > shapes.size()) paths.remove(paths.size() - 1);
+        for (int i = 0; i < shapes.size(); i++) {
+            if (i >= paths.size()) paths.add(new Path()); Path path = paths.get(i); path.rewind(); boolean first = true;
+            for (int j = 0; j < shapes.get(i).size(); j++) {
+                float x = (float) output[offset++], y = (float) output[offset++];
+                if (first) { path.moveTo(x, y); first = false; } else path.lineTo(x, y);
+            }
+        }
+        return offset;
     }
     @Override protected void onSizeChanged(int width, int height, int oldWidth, int oldHeight) {
         super.onSizeChanged(width, height, oldWidth, oldHeight); reproject();
@@ -97,8 +136,7 @@ public final class RouteHandleOverlay extends View {
         if (e.getActionMasked() == MotionEvent.ACTION_DOWN) {
             pressed = -1; double best = dp(26);
             for (int i = 0; i < handles.size(); i++) {
-                RunRoute.Point p = handles.get(i).point;
-                PointF at = map.getProjection().toScreenLocation(new LatLng(p.latitude, p.longitude));
+                PointF at = i < handlePositions.size() ? handlePositions.get(i) : project(handles.get(i).point);
                 double distance = Math.hypot(at.x - e.getX(), at.y - e.getY());
                 if (distance < best) { best = distance; pressed = i; }
             }
@@ -125,4 +163,5 @@ public final class RouteHandleOverlay extends View {
         return true;
     }
     @Override public boolean performClick() { super.performClick(); return true; }
+    @Override protected void onDetachedFromWindow() { removeCallbacks(projection); queued = false; super.onDetachedFromWindow(); }
 }

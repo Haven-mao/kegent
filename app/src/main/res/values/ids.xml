@@ -10,4 +10,9 @@
     <item name="editor_input_point" type="id"/>
     <item name="editor_input_draw" type="id"/>
     <item name="editor_input_move" type="id"/>
+    <item name="workspace_left_scroll" type="id"/>
+    <item name="workspace_right_scroll" type="id"/>
+    <item name="current_route_selector" type="id"/>
+    <item name="route_library_import" type="id"/>
+    <item name="place_search_input" type="id"/>
 </resources>

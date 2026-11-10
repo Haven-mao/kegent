@@ -20,13 +20,14 @@ public final class RealMapStyle {
     private int generation;
     public RealMapStyle(Context context, MapView view, MapLibreMap map, TextView notice, Runnable changed) {
         this.context = context; this.map = map; this.notice = notice; this.changed = changed;
+        map.setPrefetchesTiles(false); map.setPrefetchZoomDelta(0);
         view.addOnDidFailLoadingMapListener(error -> main.post(() -> {
             if (disposed) return;
             if (!fallback) osm(true); else show("地图加载失败，轨迹仍保留；请检查网络或重试地图");
         }));
         view.addOnTileActionListener((operation, x, y, z, wrap, zoom, source) -> {
             if (operation == TileOperation.LoadFromNetwork || operation == TileOperation.LoadFromCache)
-                main.post(() -> { if (!disposed) { hasTile = true; notice.setVisibility(View.GONE); changed.run(); } });
+                main.post(() -> { if (!disposed && !hasTile) { hasTile = true; notice.setVisibility(View.GONE); changed.run(); } });
             else if (operation == TileOperation.Error) main.post(() -> {
                 if (!disposed && !hasTile) show("地图瓦片加载失败，请检查网络；当前背景不代表真实街区");
             });

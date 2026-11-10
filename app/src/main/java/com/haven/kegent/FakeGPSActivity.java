@@ -12,7 +12,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.content.res.Configuration;
-import android.provider.OpenableColumns;
 import android.text.Editable;
 import android.text.InputType;
 import android.text.TextWatcher;
@@ -47,9 +46,6 @@ import com.haven.kegent.ui.RoutePreviewView;
 import com.haven.kegent.ui.Ui;
 import com.haven.kegent.route.RouteRepository;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
@@ -73,7 +69,8 @@ public class FakeGPSActivity extends AppCompatActivity {
             connection,
             reviewText,
             error;
-    private MaterialButton primary, toggle, stop, browse, reset, connect, export, drawRoute;
+    private MaterialButton primary, toggle, stop, connect, export, drawRoute;
+    private View routeSelector;
     private MaterialSwitch liveNatural, historyNatural;
     private DayNightToggleView themeToggle;
     private RoutePreviewView routeView;
@@ -95,9 +92,10 @@ public class FakeGPSActivity extends AppCompatActivity {
     private boolean history, busy, checking, binding;
     private RunEngine.State lastState;
     private String renderSignature;
-    private final ActivityResultLauncher<String[]> routePicker =
-            registerForActivityResult(
-                    new ActivityResultContracts.OpenDocument(), this::importRoute);
+    private final ActivityResultLauncher<Intent> routeLibrary =
+            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+                if (result.getResultCode() == RESULT_OK) loadRoute();
+            });
     private final ActivityResultLauncher<Intent> routeEditor =
             registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
                 if (result.getResultCode() == RESULT_OK) loadRoute();
@@ -197,48 +195,35 @@ public class FakeGPSActivity extends AppCompatActivity {
             root.addView(tabs, tabParams);
         }
 
-        ScrollView scroll = new ScrollView(this);
-        scroll.setFillViewport(true);
-        scroll.setClipToPadding(false);
-        root.addView(scroll, new LinearLayout.LayoutParams(-1, 0, 1));
         LinearLayout shell = Ui.column(this);
-        shell.setPadding(dp(16), dp(16), dp(16), dp(16));
-        scroll.addView(shell);
         LinearLayout panes = new LinearLayout(this);
         panes.setOrientation(wide ? LinearLayout.HORIZONTAL : LinearLayout.VERTICAL);
-        shell.addView(panes, new LinearLayout.LayoutParams(-1, -2));
+        if (wide) {
+            panes.setPadding(dp(16), dp(12), dp(16), 0);
+            root.addView(panes, new LinearLayout.LayoutParams(-1, 0, 1));
+        } else {
+            ScrollView scroll = new ScrollView(this); scroll.setFillViewport(true); scroll.setClipToPadding(false);
+            root.addView(scroll, new LinearLayout.LayoutParams(-1, 0, 1));
+            shell.setPadding(dp(16), dp(16), dp(16), dp(16)); scroll.addView(shell);
+            shell.addView(panes, new LinearLayout.LayoutParams(-1, -2));
+        }
         LinearLayout left = Ui.column(this);
         left.setPadding(dp(20), dp(20), dp(20), dp(20));
-        routeName = Ui.text(this, "正在读取路线", 19, true);
+        routeName = Ui.text(this, "正在读取路线", 16, true);
         routeDetails = Ui.note(this, "KML 路线将在这里显示");
         routeView = new RoutePreviewView(this);
-        Ui.add(left, routeName, 0);
-        Ui.add(left, routeDetails, 6);
         LinearLayout.LayoutParams previewParams = new LinearLayout.LayoutParams(-1, dp(wide ? 240 : 190));
-        previewParams.topMargin = dp(12); left.addView(routeView, previewParams);
-        browse = Ui.button(this, "选择路线", false);
-        browse.setOnClickListener(
-                v ->
-                        routePicker.launch(
-                                new String[] {
-                                    "application/vnd.google-earth.kml+xml",
-                                    "application/xml",
-                                    "text/xml",
-                                    "application/octet-stream"
-                                }));
-        reset = Ui.button(this, "默认路线", false);
-        reset.setOnClickListener(
-                v -> {
-                    worker.execute(() -> {
-                        try (InputStream in = getResources().openRawResource(R.raw.dutpj_mutipoint)) {
-                            RunRoute defaultRoute = RunRoute.readKml(in, "DUTPJ 操场路线");
-                            new RouteRepository(getFilesDir()).select(defaultRoute, null);
-                            prefs.edit().remove("route_name").apply();
-                            onUi(() -> useRoute(defaultRoute));
-                        } catch (Exception e) { onUi(() -> showError("默认路线恢复失败，请重试")); }
-                    });
-                });
-        Ui.pair(left, browse, reset, 12);
+        left.addView(routeView, previewParams);
+        LinearLayout routeBar = new LinearLayout(this); routeBar.setGravity(Gravity.CENTER_VERTICAL); routeBar.setPadding(dp(14), dp(12), dp(12), dp(12));
+        LinearLayout routeLabels = Ui.column(this); Ui.add(routeLabels, Ui.note(this, "当前使用的路线"), 0);
+        Ui.add(routeLabels, routeName, 4); Ui.add(routeLabels, routeDetails, 5); routeBar.addView(routeLabels, new LinearLayout.LayoutParams(0, -2, 1));
+        routeBar.addView(Ui.text(this, "›", 26, false));
+        routeSelector = Ui.card(this, routeBar); routeSelector.setId(R.id.current_route_selector);
+        routeSelector.setContentDescription("当前路线，点击打开已有路线列表"); routeSelector.setFocusable(true);
+        routeSelector.setOnClickListener(v -> {
+            if (!LocationMockService.latest.active() && !busy) routeLibrary.launch(new Intent(this, RouteLibraryActivity.class));
+        });
+        Ui.add(left, routeSelector, 12);
         drawRoute = Ui.button(this, "地图绘制 · 道路 / 操场", true);
         drawRoute.setOnClickListener(v -> {
             if (!LocationMockService.latest.active() && !busy)
@@ -267,10 +252,12 @@ public class FakeGPSActivity extends AppCompatActivity {
         historyForm.setVisibility(View.GONE);
         View rightCard = Ui.card(this, right);
         if (wide) {
-            LinearLayout.LayoutParams l = new LinearLayout.LayoutParams(0, -2, 0.9f);
+            ScrollView leftScroll = paneScroll(leftCard, R.id.workspace_left_scroll);
+            ScrollView rightScroll = paneScroll(rightCard, R.id.workspace_right_scroll);
+            LinearLayout.LayoutParams l = new LinearLayout.LayoutParams(0, -1, 0.9f);
             l.setMarginEnd(dp(16));
-            panes.addView(leftCard, l);
-            panes.addView(rightCard, new LinearLayout.LayoutParams(0, -2, 1.1f));
+            panes.addView(leftScroll, l);
+            panes.addView(rightScroll, new LinearLayout.LayoutParams(0, -1, 1.1f));
         } else {
             panes.addView(leftCard, new LinearLayout.LayoutParams(-1, -2));
             LinearLayout.LayoutParams r = new LinearLayout.LayoutParams(-1, -2);
@@ -361,6 +348,11 @@ public class FakeGPSActivity extends AppCompatActivity {
         buildScreen();
         binding = false;
         loadRoute();
+    }
+
+    private ScrollView paneScroll(View content, int id) {
+        ScrollView scroll = new ScrollView(this); scroll.setId(id); scroll.setClipToPadding(false); scroll.setPadding(0, 0, 0, dp(16));
+        scroll.addView(content, new ScrollView.LayoutParams(-1, -2)); return scroll;
     }
 
     private TextInputLayout field(String label, String key, String fallback, int type) {
@@ -589,12 +581,15 @@ public class FakeGPSActivity extends AppCompatActivity {
 
     private void loadRoute() {
         primary.setEnabled(false);
+        routeSelector.setEnabled(false);
         worker.execute(
                 () -> {
                     try {
                         RunRoute r;
                         try (InputStream in = getResources().openRawResource(R.raw.dutpj_mutipoint)) {
-                            r = new RouteRepository(getFilesDir()).load(in, prefs.getString("route_name", "自定义路线"));
+                            RouteRepository repository = new RouteRepository(getFilesDir());
+                            repository.preserveSelection(in, prefs.getString("route_name", "自定义路线"));
+                            r = repository.load(in, prefs.getString("route_name", "自定义路线"));
                         }
                         RunRoute loaded = r;
                         onUi(() -> useRoute(loaded));
@@ -622,55 +617,6 @@ public class FakeGPSActivity extends AppCompatActivity {
         invalidateHistory();
         updatePace();
         refreshLive();
-    }
-
-    private void importRoute(Uri uri) {
-        if (uri == null) return;
-        worker.execute(
-                () -> {
-                    File staged = new File(getFilesDir(), "route-import.tmp");
-                    try {
-                        String name = "自定义 KML 路线";
-                        try (android.database.Cursor cursor =
-                                getContentResolver()
-                                        .query(
-                                                uri,
-                                                new String[] {OpenableColumns.DISPLAY_NAME},
-                                                null,
-                                                null,
-                                                null)) {
-                            if (cursor != null && cursor.moveToFirst()) name = cursor.getString(0);
-                        }
-                        try (InputStream input = getContentResolver().openInputStream(uri);
-                                FileOutputStream output = new FileOutputStream(staged)) {
-                            if (input == null) throw new IllegalArgumentException("无法读取所选文件");
-                            byte[] buf = new byte[8192];
-                            int n, total = 0;
-                            while ((n = input.read(buf)) > 0) {
-                                total += n;
-                                if (total > 4 * 1024 * 1024)
-                                    throw new IllegalArgumentException("KML 文件不能超过 4 MB");
-                                output.write(buf, 0, n);
-                            }
-                        }
-                        RunRoute loaded;
-                        try (InputStream input = new FileInputStream(staged)) {
-                            loaded = RunRoute.readKml(input, name);
-                        }
-                        new RouteRepository(getFilesDir()).select(loaded, null);
-                        staged.delete();
-                        prefs.edit().putString("route_name", name).apply();
-                        onUi(() -> useRoute(loaded));
-                    } catch (Exception e) {
-                        staged.delete();
-                        onUi(
-                                () ->
-                                        showError(
-                                                e.getMessage() == null
-                                                        ? "KML 路线读取失败"
-                                                        : e.getMessage()));
-                    }
-                });
     }
 
     private double number(TextInputLayout f, double min, double max) {
@@ -812,9 +758,9 @@ public class FakeGPSActivity extends AppCompatActivity {
         if (compactStatus != null)
             compactStatus.setVisibility(!history || active ? View.VISIBLE : View.GONE);
         progress.setVisibility(!history || active ? View.VISIBLE : View.GONE);
-        browse.setEnabled(!active && !busy);
+        metrics.setVisibility(history && !active && prepared == null ? View.GONE : View.VISIBLE);
+        routeSelector.setEnabled(!active && !busy);
         drawRoute.setEnabled(!active && !busy);
-        reset.setEnabled(!active && !busy);
         for (TextInputLayout f : new TextInputLayout[] {repeats, interval, altitude, accuracy})
             f.setEnabled(!active && !busy);
         toggle.setVisibility(active ? View.VISIBLE : View.GONE);
@@ -831,7 +777,7 @@ public class FakeGPSActivity extends AppCompatActivity {
             status.setText("历史记录预览");
             metrics.setText(
                     prepared == null
-                            ? "先选时间和配速，再检查生成结果"
+                            ? ""
                             : String.format(
                                     Locale.CHINA,
                                     "%.2f km  /  %d 分 %02d 秒",

@@ -65,6 +65,7 @@ public final class RoutePreviewView extends FrameLayout implements DefaultLifecy
         cancelMovement(); this.route = route; traveled = targetDistance = 0;
         overlay.routes.clear(); List<RunRoute.Point> points = new ArrayList<>();
         for (int i = 0; i < route.size(); i++) points.add(route.get(i)); overlay.routes.add(points);
+        overlay.reproject();
         setContentDescription(route.name + "，" + Math.round(route.lengthMeters) + " 米；真实地图预览"); updateMarker();
         if (style != null && !currentStyle().equals(loadedStyle)) loadStyle(); post(this::fit);
     }
@@ -78,7 +79,7 @@ public final class RoutePreviewView extends FrameLayout implements DefaultLifecy
     }
     private void updateMarker() {
         overlay.handles.clear();
-        if (route != null) overlay.handles.add(new RouteHandleOverlay.Handle(route.at(traveled), "")); overlay.reproject();
+        if (route != null) overlay.handles.add(new RouteHandleOverlay.Handle(route.at(traveled), "")); overlay.reprojectHandles();
     }
     private void cancelMovement() { if (movement != null) { movement.cancel(); movement = null; } }
     private void fit() {

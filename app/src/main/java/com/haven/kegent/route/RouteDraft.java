@@ -15,6 +15,7 @@ public final class RouteDraft {
     }
     public Mode mode = Mode.ROAD;
     public String name = "地图路线";
+    public String savedRouteId = "";
     public final List<Anchor> anchors = new ArrayList<>();
     public boolean closed, smooth, closingManual, trackInitialized;
     public RunRoute.Point center = new RunRoute.Point(40.6869, 122.1168);
@@ -48,7 +49,7 @@ public final class RouteDraft {
     }
     public JSONObject json() throws Exception {
         JSONObject o = new JSONObject().put("version", 1).put("crs", "WGS84").put("mode", mode.name())
-                .put("name", name).put("closed", closed).put("smooth", smooth).put("closingManual", closingManual).put("trackInitialized", trackInitialized)
+                .put("name", name).put("savedRouteId", savedRouteId).put("closed", closed).put("smooth", smooth).put("closingManual", closingManual).put("trackInitialized", trackInitialized)
                 .put("center", new JSONArray().put(center.longitude).put(center.latitude))
                 .put("radius", radius).put("straight", straight).put("bearing", bearing)
                 .put("startFraction", startFraction).put("lane", lane).put("laneWidth", laneWidth).put("clockwise", clockwise);
@@ -62,6 +63,7 @@ public final class RouteDraft {
             throw new IllegalArgumentException("不支持的路线草稿格式或坐标系");
         RouteDraft d = new RouteDraft();
         d.mode = Mode.valueOf(o.getString("mode")); d.name = o.optString("name", "地图路线");
+        d.savedRouteId = o.optString("savedRouteId", "");
         d.trackInitialized = o.optBoolean("trackInitialized", d.mode == Mode.TRACK);
         d.closed = o.optBoolean("closed"); d.smooth = o.optBoolean("smooth"); d.closingManual = o.optBoolean("closingManual");
         JSONArray center = o.getJSONArray("center"); d.center = new RunRoute.Point(center.getDouble(1), center.getDouble(0));
