@@ -156,7 +156,8 @@ kegent 是基于 [LangQi99/dlut-FakeRun](https://github.com/LangQi99/dlut-FakeRu
 
 4. 回到keep开始户外跑会自动定位到大盘，根据配速一般只需要等待半小时左右即可
 
-![Image](https://internal-api-drive-stream.feishu.cn/space/api/box/stream/download/authcode/?code=ZTNjMGM5MWZiNzJhYWQzYzk4NGY0MWY4OThlN2VmMzZfNDQ4OGM3ODczYjQzNTViZmE1YzljYjRhOTdhOTNlYzRfSUQ6NzY5OTEwNTYyNzIyOTk0OTE2Nl8xNzk0MzE0MzkzOjE3OTQ0MDA3OTNfVjM)
+<img width="2376" height="1337" alt="image" src="https://github.com/user-attachments/assets/7ed1de3c-e14c-4a32-b5a4-3ba8c14a086c" />
+
 
 # 免责声明
 
@@ -181,9 +182,7 @@ kegent 是基于 [LangQi99/dlut-FakeRun](https://github.com/LangQi99/dlut-FakeRu
 如果可以的话，**希望能给github仓库一个star～\(∠・ω\<\)⌒★，您的star是继续开源的动力**
 
 https://github\.com/Haven\-mao/kegent
-
-![Image](https://internal-api-drive-stream.feishu.cn/space/api/box/stream/download/authcode/?code=OWRmNDNkMzc1MzhjNGE0NDFjYzI4MGNkZjEwYzQ5MjhfODQwYjU0ODllNjgyN2UyNGExN2RkZGYwNTljMDI5OTVfSUQ6NzY5OTEwNzMzNTIzODk3ODgxNl8xNzk0MzE0MzkzOjE3OTQ0MDA3OTNfVjM)
-
+<img width="1750" height="97" alt="image" src="https://github.com/user-attachments/assets/f450e9ec-95f3-4025-bb42-6896109969dd" />
 
 
 
