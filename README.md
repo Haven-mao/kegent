@@ -20,149 +20,175 @@ kegent 是基于 [LangQi99/dlut-FakeRun](https://github.com/LangQi99/dlut-FakeRu
 | :---: | :---: | :---: |
 | <img src="image/Snipaste_2026-10-19_12-59-13.png" alt="kegent 实时跑步页面：路线选择、速度与自然配速配置" width="260"> | <img src="image/Snipaste_2026-10-19_13-00-02.png" alt="kegent 历史补跑页面：起止时间、平均配速、Keep 连接与 GPX 导出" width="260"> | <img src="image/Snipaste_2026-10-19_13-00-34.png" alt="Keep 运动数据同步页面中的已上传记录列表" width="260"> |
 
-第三张截图展示 Keep 的「运动数据同步 → 已上传」页面；运动历史列表的来源标识验证状态见下文「“Keep App”来源标识」。
+# 如何使用kegent补填校园跑（2\.0\.0版本）
 
-## 功能与改动
+# 程序与环境准备
 
-- **路线列表**：默认路线为“大连理工大学盘锦校区路线”，约 400 米，与自建路线以同样的卡片展示，内置路线不支持删除。顶部“使用默认路线”和“导入 KML 并保存”左右并排；绘制的路线也会进入列表，支持切换和重命名。
-- **内置地图绘制**：原生 MapLibre 地图，支持道路选点/画线规划、可调整操场模板、手动自由绘制与平滑曲线。宽屏使用顶部导航和右侧工具栏，手机工具可收起；支持小圆点拖动、逐笔撤销、清空、草稿恢复、起跑点和跑道方向。
-- **实时跑步**：配置速度、路线次数、定位更新间隔、海拔和精度；支持暂停、继续、调速、结束及通知栏控制。暂停时间不计入有效时长，调速保留当前路线进度。
-- **自然配速**：默认启用。超过 1 km 的记录前段略快，随后平滑过渡；中后段结合不同尺度的连续变化，增加分段配速的起伏。关闭后使用匀速模式。
-- **单条历史补跑**：按精确到秒的过去起止时间和平均配速计算距离，结合步频、体重估算步数与热量。同一条记录的预览、GPX 导出和 Keep 交接使用一致的配速曲线，保留指定的总时长、总距离与平均配速。
-- **真实地图预览与导出**：主页面和编辑页均使用原生 MapLibre 真实地图，展示道路、建筑和地名；保留路线及移动位置标记，支持历史记录导出 GPX。
-- **界面适配**：保留浅蓝视觉风格，支持浅色 / 深色主题、手机窄屏、横屏和平板布局；原生动效遵循系统动画设置。
-- **平板独立滚动**：主页面左侧地图/路线和右侧参数各自上下滚动，底部主操作保持固定。
-- **应用内更新**：在“帮助与更新 → 检查更新”中查看新版、下载 APK、校验签名并打开系统安装确认；支持暂停续传和更新来源设置。旧版首次需要手动安装带此功能的版本。
+## 本应用理论上适用于任意模拟器以及实现root的安卓手机，考虑到便利性与安全性，推荐使用蓝叠 5（bluestack 5）模拟器（在这之前确保您拥有windows计算机）
 
-## 开始使用
+> 使用 蓝叠 5（bluestack 5）运行该项目的好处：只需要一台windows系统机器
+> 
+> 
 
-### 实时跑步
+1. 下载BlueStacks 5模拟器，可以从官方下载，或者通过下方给出的链接中的云盘下载
 
-1. 安装 kegent，按提示授予定位等运行权限。
-2. 在 Android「开发者选项」中，将 kegent 设为模拟定位应用。
-3. 打开「实时跑步」，点击当前路线显示条，在已有路线列表中使用默认路线或导入标准 GPS / WGS84 坐标的 KML 文件。
-4. 设置速度、路线次数等参数，确认预览后开始运行。
-5. 运行中可在应用内暂停、继续、调速和结束；通知栏提供暂停 / 继续与结束操作。
+2. 下载kegent，可以在github release（https://github\.com/Haven\-mao/kegent/releases/tag/v1\.3\.1）中下载，也可以通过给出的云盘链接中下载
 
-实时模拟定位不要求 Root；其他应用是否接收模拟定位，取决于其自身行为和设备环境。
+3. 下载keep apk，建议使用本人开发时使用的版本，该版本apk也在下方云盘链接中给出
 
-### 单条历史补跑(模拟器在设置中开root)
+    **云盘链接**
 
-1. 打开「历史补跑」，选择路线，填写过去的开始时间、结束时间和平均配速。
-2. 填写步频、体重，并按需启用「自然配速」。
-3. 生成预览，核对时间、距离、配速和轨迹。
-4. 选择导出 GPX；如需交给 Keep，先点击「检查 Keep 连接」，核对版本与账号，再确认「加入并打开 Keep」。
-5. 交接后在 Keep 中检查同步状态和最终记录。
+    > **（为什么使用中国移动云盘，因为其它云盘不开会员都严重限速）**
+    > 
+    > 
 
-历史记录根据填写的参数生成，步数与热量属于估算值。当前按单条记录操作；普通未 Root 设备也可使用预览和 GPX 导出。
+    https://yun\.139\.com/shareweb/\#/w/i/2yA8uPxKJMcu0
 
-## Keep 接入说明
+![Image](https://internal-api-drive-stream.feishu.cn/space/api/box/stream/download/authcode/?code=ZmI3OWQ4MWRiNGFlZWJmZDFjOTBkOTU0N2EyODRiZDdfYWE3YTdlZTc0NWQ3NzRlODU4OGRjMGMwZmRmZGYyYjZfSUQ6NzY5OTA5ODI4OTM3MTAwODAzM18xNzk0MzE0MzkzOjE3OTQ0MDA3OTNfVjM)
 
-### 支持范围与同步行为
+## 下载云盘内容到本地文件夹之后，双击蓝叠的下载器（BlueStacksMicrolnstaller\.exe）下载蓝叠本体
 
-| 条件 | 要求 |
-| --- | --- |
-| Keep 版本 | **8.7.30 / versionCode 49337**，其他版本可能会拒绝交接 |
-| 安装位置 | Android 主用户中已安装并登录的 Keep |
-| 设备权限 | 已提供 Root 权限 |
-| 系统命令 | 可用的 `sqlite3`、`stat`、`restorecon` |
-| 运动状态 | Keep 当前没有正在记录的运动 |
+1. 打开后的蓝叠如下，将文件夹中从云盘中下载的apk拖入蓝叠
 
-交接前会检查版本、账号和本地数据结构，并备份本地索引；写入时检查重复记录及与本地待同步跑步的时间重叠。Keep 的登录认证与云端同步仍由 Keep 自身处理。
+![Image](https://internal-api-drive-stream.feishu.cn/space/api/box/stream/download/authcode/?code=MWIwNTkwNzY3Y2MzYTdhYWU5M2EwZjg2YzI4MGVjNGNfNWM1MDI4NmYyZTM0ZDIzZGJkNzkyNWJlNjNjMTcxMTZfSUQ6NzY5OTQ1NjIwNzA5MDA5MzM1OF8xNzk0MzE0MzkzOjE3OTQ0MDA3OTNfVjM)
 
-**加入 Keep 后，记录可能自动同步到云端，不一定等待手动点击上传。** 请在确认交接前核对记录。kegent 显示的交接成功只代表完成本地写入，云端是否接受、如何显示，以 Keep 的最终结果为准。
+确保拖入蓝叠之后两个apk完成安装
 
-这是针对指定客户端版本的私有存储适配。Keep 升级后需要重新核对数据结构与同步行为；更新 kegent 不会自动修改已经上传的云端记录。
-
-### “Keep App”来源标识
-
-1.3.1 修正了来源身份的序列化格式，解决旧版来源信息被 Keep 解析为空的问题。正确字段已通过 Keep 本地解析和上传序列化验证，**修复后在云端运动历史列表中显示“Keep App”的结果仍待验证**。
-
-- 待上传页的“Keep App 离线数据”是 Keep 客户端的固定文案。
-- 上传后的运动历史列表使用服务器返回的来源名称和图标。
-
-因此，待上传页出现该提示不能证明上传后会显示来源标识，也不能通过调整本地队列分类来修改上传后的文案。详细字段、备份位置和接入流程见 [Keep 接入文档](docs/KEEP_INTEGRATION.md)。
-
-## 地图与路线坐标
-
-### 直接在地图上绘制
-
-点击路线卡片中的 **地图绘制 · 道路 / 操场**：
-
-- **沿道路**：可“点选”添加起点、途经点、终点，也可切到“画线”拖出路线，松手后沿步行路网规划。最多 20 个控制点；选中某段终点后可切换“本段手绘”。红色虚线表示未完成路段，完成前不能保存并应用。
-- **操场**：点击放置跑道中心，拖动“中 / 长 / 宽”手柄调整位置、朝向和尺寸；“跑道参数”中可设直道、半径、道次、道宽和顺逆时针，“设置起跑点”后点击跑道附近。400 米模板的实际采样长度约 399.97 米，显示的是最终路线计算值；现场尺寸仍需自己校准。
-- **手动**：支持点选连线或单指/鼠标拖动自由绘制，自动提取控制点，可开启平滑和闭合。每一笔可撤销，下一笔从终点附近继续。曲线不会自动识别建筑、道路边界或真实跑道。
-
-“清空”移除当前模式的全部轨迹，可通过撤销恢复；不会删除路线列表中已保存的路线。“重做”和“删除选点”按钮已移除。
-
-“移动”模式下拖图不会新增选点；画线时也可用双指移动或缩放。宽屏将模式切换放到顶栏，操作集中到右侧；手机下方点击“工具”展开或收起更多操作。选点圆点已缩小，周围仍保留较大的触摸范围。
-
-道路和手动模式首次进入为空白，不放置默认轨迹；本次切换模式时分别保留编辑内容。需要继续上次编辑时，使用“更多 → 恢复上次草稿”或“从当前路线编辑”。草稿自动保存在本机，“保存并应用”会把命名路线存入列表并应用。正在运行或暂停时不能切换路线。
-
-地图编辑顶栏新增“搜索”：输入地点或地址，点击搜索，再选择结果跳转地图；搜索不会自动加点或更换路线。默认使用 Photon，支持通过服务设置切换 Photon / Nominatim HTTPS 搜索服务，查询会缓存并限制频率。
-
-默认地图使用 OpenFreeMap，加载失败时切换 OSM 栅格底图；默认步行规划使用 FOSSGIS 公共 Valhalla 服务，适合当前小量测试。**在线底图和道路规划均依赖设备网络与服务覆盖**；操场几何及手动绘制可本地生成。可通过“更多 → 地图与路线服务”修改 HTTPS 地图样式或 Valhalla 地址，地图样式也可填 `osm`。
-
-使用说明、存储格式与验证范围见 [地图编辑接入说明](docs/MAP_ROUTE_EDITOR.md)。
-
-### 坐标与原有路线预览
-
-导入 KML 应使用标准 **GPS / WGS84** 坐标。实时模拟定位和 GPX 导出保持 WGS84；交给 Keep 时，适配器按其腾讯定位链路在适用范围内转换为 GCJ-02。请勿将已经转换过的高德 / 腾讯坐标再次作为 WGS84 导入。
-
-kegent 的主页面和编辑页使用真实地图并保留署名；原有装饰街区背景已移除。网络或瓦片服务不可用时显示明确提示，保留轨迹，不生成虚构道路。Keep 使用自己的地图服务与图层，两者的样式可能不同。
-
-如果 Keep 记录中只有轨迹、没有道路或地名，可打开记录的「全屏 → 图层」，**点击 Street 上方的地图缩略图（皮肤）**，然后确认。只点击下方的 Street 文字可能不会切换；「隐藏地图」或 Gotham 图层可能呈现纯色 / 深色背景。
-
-## 本地构建
-
-后续发布使用固定兼容签名和 Release 中的 `update.json`。配置、产物生成与 GitHub 发布步骤见 [应用内更新接入说明](docs/APP_UPDATE.md)；当前本地构建不会自动发布远程版本。
-
-需要 JDK 17 或兼容的更新版本，以及 Android SDK 36。项目使用 Gradle Wrapper 8.14.3、Android Gradle Plugin 8.13.0；`compileSdk` 为 36，`targetSdk` 为 34，`minSdk` 为 26。
-
-1. 在 Android Studio 中打开项目，或准备好命令行构建环境。
-2. 在项目根目录的 `local.properties` 中配置本机 Android SDK 路径。该文件已被 Git 忽略，例如 Windows 可填写：
-
-   ```properties
-   sdk.dir=C:/Android/Sdk
-   ```
-
-3. 在项目根目录执行构建与本地检查。
-
-**Windows PowerShell**
-
-```powershell
-.\gradlew.bat :app:exportDebugApk :app:testDebugUnitTest :app:lintDebug
-```
-
-**macOS / Linux**
-
-```sh
-chmod +x gradlew
-./gradlew :app:exportDebugApk :app:testDebugUnitTest :app:lintDebug
-```
-
-生成的安装包位于：
-
-```text
-app/build/outputs/apk/kegent/kegent.apk
-```
+2. 根据下图箭头指引完成蓝叠root与**adb开启**
 
 
-设备测试使用 `:app:connectedDebugAndroidTest`，建议在专用测试设备上运行，并提前备份应用设置：测试流程会安装、卸载目标应用和测试包。普通设备测试默认跳过实际模拟定位服务与 Keep 写入测试；Keep 写入测试需要显式启用，同时隔离 IPv4 / IPv6 网络，并在结束后清理测试记录。
 
-## 项目文档与来源
+![Image](https://internal-api-drive-stream.feishu.cn/space/api/box/stream/download/authcode/?code=ZjI3MWQ3OGE4N2VmOTQ0NDZkM2MzMzcwOWI4MzMzN2RfOWJiOWI4YzIxMzZjYWZlNDc3NjZhMDY4Y2Y3N2ZlMWRfSUQ6NzY5OTEwMTEzMzUyNDM3Mjc0OF8xNzk0MzE0MzkzOjE3OTQ0MDA3OTNfVjM)
 
-| 文档 | 内容 |
-| --- | --- |
-| [Keep 接入说明](docs/KEEP_INTEGRATION.md) | 支持版本、接入流程、来源字段、备份与同步边界 |
-| [验证记录](docs/VALIDATION.md) | 构建、测试、设备验证结果及未验证事项 |
-| [源码恢复记录](docs/RECOVERY.md) | KmAo 资源恢复过程与可恢复范围 |
-| [素材来源记录](docs/ASSET_PROVENANCE.json) | 图标、栅格素材的来源与摘要 |
-| [产品约定](PRODUCT.md) | 功能范围与产品行为约束 |
-| [地图编辑接入说明](docs/MAP_ROUTE_EDITOR.md) | 道路、操场、手动模式与测试方式 |
-| [应用内更新接入说明](docs/APP_UPDATE.md) | 使用入口、下载校验、固定签名与发布工作流 |
-| [应用内更新调研](docs/APP_UPDATE_FEASIBILITY.md) | 旧版签名兼容性与最初选型依据 |
-| [设计约定](DESIGN.md) | 视觉风格与交互规范 |
+![Image](https://internal-api-drive-stream.feishu.cn/space/api/box/stream/download/authcode/?code=ZmZjYjU1MzFkNTc0YWQzYjY3NDc0OTUyYmEzZjE0NjdfN2Y4MTMzMjY1OTFjNWNhMDBhNTZkNGZlZDI4ZGM4ZGNfSUQ6NzY5OTEwMTQwNDgxOTk4MzYzNV8xNzk0MzE0MzkzOjE3OTQ0MDA3OTNfVjM)
+
+![Image](https://internal-api-drive-stream.feishu.cn/space/api/box/stream/download/authcode/?code=OGQyODgxYjg3ZTVmOWRhZjE5MzhmOWVhZDlhMDIzMWRfY2U0ZjczN2VmN2JhY2UwZTk1M2U2NzdmMGNhN2ZlZThfSUQ6NzY5OTEwMTczNzA3NjMyOTcyNF8xNzk0MzE0MzkzOjE3OTQ0MDA3OTNfVjM)
+
+![Image](https://internal-api-drive-stream.feishu.cn/space/api/box/stream/download/authcode/?code=MmE1YTQyZDRjNmM2YWIwOTk5Yzg0YWYwYzc2OWUzZmZfZWQyMjhhYWViNmU2MDNmMmViZDViZTRkZWEwMTNhZTBfSUQ6NzcwMDU5MjUwNTY3MDUzNjM3Nl8xNzk0MzE0MzkzOjE3OTQ0MDA3OTNfVjM)
+
+# **如何进行keep运动**
+
+## 0\. 如何在地图选出自己想要的轨迹
+
+### **如果你是大连理工大学盘锦校区的学生**
+
+应用内已经内置了大连理工大学盘锦校区风雨操场的轨迹，直接使用即可，如果你对轨迹不满意，也可根据说明自行创建
+
+### 导入KML文件（不推荐，操作比较麻烦）
+
+1. 前往google earth https://earth\.google\.com
+
+2. 点击探索地球
+
+3. 如下图，选择路径或多边形
+
+<img width="1280" height="677" alt="image" src="https://github.com/user-attachments/assets/3057b437-2927-46ff-85bc-25d6c98d7ebc" />
+
+
+4. 在地图上创建路径（下图仅为示例，实际使用请多选一些点，注意最终需要闭合曲线）
+
+![Image](https://internal-api-drive-stream.feishu.cn/space/api/box/stream/download/authcode/?code=OGMxODlhMDdlODRhYzI0NTY1MjNmZDc5ZjM2MWI4OTVfOGNmMjE1OTQ1NmUzMDZmM2YzYWUzYjJkNDQ0MTI5NzRfSUQ6NzcwNjUxNTE0Njc1MTI0OTcxMl8xNzk0MzE0MzkzOjE3OTQ0MDA3OTNfVjM)
+
+5. 点击保存到项目
+
+6. 点击文件，导出为KML文件（如下图）
+
+![Image](https://internal-api-drive-stream.feishu.cn/space/api/box/stream/download/authcode/?code=MDcwMTdhYjIzMjUzNWY1MTEwOTE4OTZjMTMwYTM1ZGNfYmY5MzM5ZDI1NjY4MGI1ZTBiMWMzZWFiODUyMGRiM2NfSUQ6NzcwNjUxNTgwMTQ3Nzg0NDIxM18xNzk0MzE0MzkzOjE3OTQ0MDA3OTNfVjM)
+
+7. 进入kegent \-\> 点击当前使用的路线 \-\> 点击导入KML并保存
+
+### 使用程序内置绘制工具进行绘制（推荐\<2\.0\.0版新功能\>）
+
+1. 打开kegent，点击地图绘制（如下图）
+
+
+![Image](https://internal-api-drive-stream.feishu.cn/space/api/box/stream/download/authcode/?code=NzM3MWRkMTYzMzgzMjYwODdmZjk5ZWUzNzc2NGIyNDlfNmVlZDcyNmFjMmE5YmVkYTgyZjZkMzcxNzc1ODU2MzJfSUQ6NzcwNjUxNjg1Njg0NjMwNjMwM18xNzk0MzE0MzkzOjE3OTQ0MDA3OTNfVjM)
+
+2. 搜索目的地，此处以主校区为例（虽然主校区也用不上）
+
+![Image](https://internal-api-drive-stream.feishu.cn/space/api/box/stream/download/authcode/?code=ZjM3ZmU3MWViNzdjNTRlYTA3NGE0Zjg5MmJiYWIzZDFfMWQwYTYzNDI4NDM3OGVhMzlmOGZjZGY3YWY2OGIyYjBfSUQ6NzcwNjUxNzI0MDU4MTIxMzE5NV8xNzk0MzE0MzkzOjE3OTQ0MDA3OTNfVjM)
+
+3. 如果是道路则选择道路进行绘制，如果是操场则找到操场选择操场（tips：按住ctrl \+ 滚轮上下可以快捷放大缩小地图）
+
+![Image](https://internal-api-drive-stream.feishu.cn/space/api/box/stream/download/authcode/?code=MjQ0MDlmODJhMDEyMzcxMmUwMWRhNGQwNzg5ZjI4YzhfMzJjMDdjNGI5MTk2NDljNTNhN2MwNWE4ZWJjOTc3MWNfSUQ6NzcwNjUxODI1MzA4MzY3NTY3M18xNzk0MzE0MzkzOjE3OTQ0MDA3OTNfVjM)
+
+4. 点击保存并应用 \-\> 设置路线名称 \-\> 点击保存 即可使用该路线
+
+## 悟已往之不谏
+
+本功能模块用于向**已经过去的时间段内导入记录**（期末保命）
+
+1. 打开keep，使用手机验证码登录自己的账号
+
+2. keep保持后台，打开kegent
+
+3. 选择开始和结束时间、配速、步频等信息，未填写的信息会有算法自动补充，见图1
+
+4. 点击预览历史记录，见图二
+
+5. 点击检查keep连接后，点击交给keep同步
+
+6. 点击加入并打开keep（会自动跳转到keep的上传数据页面）
+
+7. 点击上传全部
+
+完成以上操作之后，在手机keep上你就会发现记录已经补上去了
+
+![Image](https://internal-api-drive-stream.feishu.cn/space/api/box/stream/download/authcode/?code=YjllODA1ZDEyNjgwMjAzODcwMzg4NTIyMmVmZGRlYjhfNWFmMDVkMzA5NjQwNjk4YmVhZDFjODYxMzhjODE4NmZfSUQ6NzY5OTEwMjc3NjI0ODY1MDc4N18xNzk0MzE0MzkzOjE3OTQ0MDA3OTNfVjM)
+
+![Image](https://internal-api-drive-stream.feishu.cn/space/api/box/stream/download/authcode/?code=ZjQ1MGRhZTQyMDFhYmY0Y2Q2OTEwMTcxMTQ3MjkyNmJfYzVjNWRlZGQ3MGQzZDBhZWQyMmRkMDNmYWVjNDYwNDBfSUQ6NzY5OTEwMzE5MTI2MjIwMzE1OF8xNzk0MzE0MzkzOjE3OTQ0MDA3OTNfVjM)
+
+![Image](https://internal-api-drive-stream.feishu.cn/space/api/box/stream/download/authcode/?code=ZTE3Y2JlM2JjM2NiMGFkOTFmMGExNzI5NGUzODk5NWZfZDI2MmRmMWZkZGE3ODI4ODY3Yzc2Zjk4ZGE5Yzg2MTJfSUQ6NzY5OTEwMzUzMjU0NDg1NTAzMV8xNzk0MzE0MzkzOjE3OTQ0MDA3OTNfVjM)
+
+![Image](https://internal-api-drive-stream.feishu.cn/space/api/box/stream/download/authcode/?code=ZGQ1MjcxNTk5MzRjZTRmY2Y4M2NmZWU0OGNiZTMyNzlfYjA0YmM2M2QzMTFkZjMwNjdjOTZkMmU1MDA3YTgzYjNfSUQ6NzY5OTEwMzg3NTk5MDcwMzExMF8xNzk0MzE0MzkzOjE3OTQ0MDA3OTNfVjM)
+
+**tips：如果出现该情况，改个图层就可以**
+
+![Image](https://internal-api-drive-stream.feishu.cn/space/api/box/stream/download/authcode/?code=ODkzMjgyZjlhZjU3ZDE0OGYzMDU1NTU5NWE5NmY4ZjhfZjliZjExNDVkMzM5YzZjZDQ3NThkZTZkNWEyNmQ4YjdfSUQ6NzY5OTEwNTA4MzU0ODA2MDY2MV8xNzk0MzE0MzkzOjE3OTQ0MDA3OTNfVjM)
+
+![Image](https://internal-api-drive-stream.feishu.cn/space/api/box/stream/download/authcode/?code=ZWU2OWYyYTFiYjE5OTRlMGUxNjJiN2FkZDExZWZkM2FfZGJmZGY2MDdkNGNiNTI5YzY5NjJhNDRiNDE4Y2MxZDNfSUQ6NzcwNjUxNDYwNTg2NjM3MjEyNF8xNzk0MzE0MzkzOjE3OTQ0MDA3OTNfVjM)
+
+## 知来者之可追
+
+本功能模块用于**实时跑步**，操作非常简单
+
+1. 打开keep
+
+2. 保留keep后台，打开kegent
+
+3. 选择参数并点击开始运行之后保留后台（由于蓝叠等模拟器部分安卓传感器通道问题，实时跑步不支持定制步频等某些信息）
+
+4. 回到keep开始户外跑会自动定位到大盘，根据配速一般只需要等待半小时左右即可
+
+![Image](https://internal-api-drive-stream.feishu.cn/space/api/box/stream/download/authcode/?code=ZTNjMGM5MWZiNzJhYWQzYzk4NGY0MWY4OThlN2VmMzZfNDQ4OGM3ODczYjQzNTViZmE1YzljYjRhOTdhOTNlYzRfSUQ6NzY5OTEwNTYyNzIyOTk0OTE2Nl8xNzk0MzE0MzkzOjE3OTQ0MDA3OTNfVjM)
+
+# 免责声明
+
+1. 本项目虽然参考了部分keep的实现，但是没有在本人程序中调用任何keep内部相关接口，所有上传操作皆由keep源程序运行，在keep的可执行操作范围内，未侵犯keep的合法权利，**本项目不支持任何商业化或盈利举动**，如果影响到了您的正当盈利或者侵犯了版权信息，请联系删除
+
+2. 校园跑本意是促进学生课余锻炼，所以如若使用该项目，还请适量
+
+①根据二〇〇二年一月一日《计算机软件保护条例》规定：为了学习和研究软件内含的设计思想和原理通过安装、显示、传输或者存储软件等方式使用软件的，可以不经软件著作权人许可，不向其支付报酬！
+
+②本项目尊重各网络文件的版权问题，所有资源均出自网络，所有提供下载的资源均为资源作者提供和网络收集整理而来，仅供学习和研究使用。下载本项目的用户必须明白，本项目对提供下载的资源等不拥有任何权利，其版权归该资源的合法拥有者所有。
+
+③本项目不承担用户因使用这些下载资源对自己和他人造成任何形式的损失或伤害。不论何种情形本项目都不对任何由于使用或无法使用本项目提供的资源所造成的直接的、间接的、附带的特殊的或余波所及的损失、灵失、债务或中断负任何责任\[不论是可预见或是不可预见的，即使本项目已被告知这种可能性\]。
+
+④如有侵犯您的版权，请私信本项目将立即改正。本项目对互联网版权绝对支持。
+
+⑤下载本项目资源后在7天内删除仅供学习和研究使用。
+
+# 完结撒花
+
+感谢您看到了本文最后
+
+如果可以的话，**希望能给github仓库一个star～\(∠・ω\<\)⌒★，您的star是继续开源的动力**
+
+https://github\.com/Haven\-mao/kegent
+
+![Image](https://internal-api-drive-stream.feishu.cn/space/api/box/stream/download/authcode/?code=OWRmNDNkMzc1MzhjNGE0NDFjYzI4MGNkZjEwYzQ5MjhfODQwYjU0ODllNjgyN2UyNGExN2RkZGYwNTljMDI5OTVfSUQ6NzY5OTEwNzMzNTIzODk3ODgxNl8xNzk0MzE0MzkzOjE3OTQ0MDA3OTNfVjM)
+
+
 
 
 感谢原项目 [LangQi99/dlut-FakeRun](https://github.com/LangQi99/dlut-FakeRun) 提供的路线与模拟定位实现基础。
