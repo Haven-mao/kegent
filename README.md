@@ -38,7 +38,8 @@ kegent 是基于 [LangQi99/dlut-FakeRun](https://github.com/LangQi99/dlut-FakeRu
 
     https://yun\.139\.com/shareweb/\#/w/i/2yA8uPxKJMcu0
 
-![Image](https://internal-api-drive-stream.feishu.cn/space/api/box/stream/download/authcode/?code=ZmI3OWQ4MWRiNGFlZWJmZDFjOTBkOTU0N2EyODRiZDdfYWE3YTdlZTc0NWQ3NzRlODU4OGRjMGMwZmRmZGYyYjZfSUQ6NzY5OTA5ODI4OTM3MTAwODAzM18xNzk0MzE0MzkzOjE3OTQ0MDA3OTNfVjM)
+<img width="1105" height="285" alt="image" src="https://github.com/user-attachments/assets/344eaec3-d1c4-4454-a77b-c29172d342f4" />
+
 
 ## 下载云盘内容到本地文件夹之后，双击蓝叠的下载器（BlueStacksMicrolnstaller\.exe）下载蓝叠本体
 
